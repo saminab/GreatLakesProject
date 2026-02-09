@@ -1,0 +1,26 @@
+If you have not already done so, please register!
+
+    Create an Earthdata account
+    Link GES DISC with your account
+    Verify by downloading this example data file URL
+
+Download the list of links
+Follow the instructions for wget
+
+1-make sure Earth data are set and your machin have access to earth data. you have to make an account in earth data then do the following
+
+	chmod 700 "$HOME"
+	umask 077
+	cat > "$HOME/.netrc" <<'EOF'
+	machine urs.earthdata.nasa.gov
+	  login YOUR_USERNAME
+	  password YOUR_PASSWORD
+	EOF
+	chmod 600 "$HOME/.netrc"
+	rm -f "$HOME/.urs_cookies"
+2- run the script
+chmod +x download_earthdata_from_txt.sh
+
+downloadcode.sh listofdata.txt path/tosave
+
+./download_earthdata_from_txt.sh subset_urls.txt /mnt/Tdrive/Data/Climate_Data/Gridded/Downloaded/NLDAS_2_monthly
