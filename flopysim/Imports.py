@@ -36,6 +36,10 @@ import rasterio as rio
 import fiona
 from scipy.ndimage import label
 
+import flopy.utils.binaryfile as bf
+import matplotlib.dates as mdates
+from matplotlib.colors import TwoSlopeNorm
+
 print(f"numpy version: {np.__version__}")
 print(f"matplotlib version: {mpl.__version__}")
 print(f"flopy version: {flopy.__version__}")

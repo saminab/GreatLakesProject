@@ -48,7 +48,7 @@ def pct(arr, lo, hi):
     return (float(np.nanpercentile(v, lo)),
             float(np.nanpercentile(v, hi))) if v.size else (0, 1)
 
-def add_scalebar(ax, length_km=100):
+def add_scalebar(ax, delr, delc, length_km=100):
     fp = fm.FontProperties(size=9)
     ax.add_artist(AnchoredSizeBar(
         ax.transData, length_km * 1000,
@@ -89,4 +89,40 @@ def compute_quantile_bounds(arr, n_classes):
     bounds = np.percentile(vals, percentiles)
     bounds = np.unique(bounds)
     return bounds, vals
+
+def base_ax(ax, letter, title):
+    """Apply standard axis formatting for model input summary plots."""
+    ax.set_title(f"{letter} {title}", loc="left", fontweight="bold", fontsize=10)
+    ax.set_xlabel("Easting (m)", fontsize=8)
+    ax.set_ylabel("Northing (m)", fontsize=8)
+    ax.tick_params(labelsize=7)
+
+def outline_ring(ax, ring_mask_2d, extent, n_ring=None):
+    """Overlay a red contour outline of the GHB ring cells on ax."""
+    if n_ring is not None and n_ring == 0:
+        return
+    if not np.any(ring_mask_2d):
+        return
+    ax.contour(
+        ring_mask_2d.astype(float),
+        levels=[0.5],
+        colors="#cc0033",
+        linewidths=0.6,
+        extent=extent,
+        origin="upper",
+    )
+
+def pct_terrestrial(arr, lo, hi, terrestrial_mask):
+    """Return (lo, hi) percentile of arr over terrestrial (non-lake) active cells."""
+    v = arr[terrestrial_mask & np.isfinite(arr)]
+    return (float(np.nanpercentile(v, lo)),
+            float(np.nanpercentile(v, hi))) if v.size else (0, 1)
+
+def row(name, arr, terr, ring, unit=""):
+    """Print one summary statistics row split by terrestrial vs GHB-ring cells."""
+    t = arr[terr][np.isfinite(arr[terr])]
+    r = arr[ring][np.isfinite(arr[ring])]
+    print(f"{name:8s} "
+          f"{t.min():>7.2g} {np.median(t):>7.2g} {t.max():>7.2g} "
+          f"| {r.min():>6.2g} {np.median(r):>6.2g} {r.max():>6.2g} {unit}")
 

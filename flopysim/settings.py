@@ -50,3 +50,15 @@ SURF_DRN_LAY     = 0       # always top layer
 
 MIN_RECHARGE_MDAY = 0.0   # below this = weak drain zone
 SURF_COND_WEAK    = 0.1   # m²/day — prevents artesian, won't drain aquifer
+
+# --- CHD flag ---
+USE_CHD = False
+
+# --- Vertical anisotropy ---
+KV_ANISOTROPY_RATIO = 10.0    # Kv = Kh / KV_ANISOTROPY_RATIO for all layers
+
+# --- Drain cluster filter ---
+MIN_CLUSTER_SIZE = 3          # remove isolated stream/wetland drain groups smaller than this
+
+# --- Plot classes ---
+N_CLASSES = 15                # number of quantile classes for HK colormap

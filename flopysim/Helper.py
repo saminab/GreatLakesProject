@@ -1179,3 +1179,23 @@ def ghb_df_to_bool_mask(df, nrow, ncol):
     for r in df.itertuples(index=False):
         mask[int(r.i), int(r.j)] = True
     return mask
+
+# function for surface seepage cell 
+#This function iterates over a MODFLOW “stress-period record list” and extracts all unique (i, j) index pairs from it. It returns these pairs as a set of 2-tuples of integers.
+def rec_to_ij_set(rec_list):
+    """Return a set of (i, j) pairs from a MODFLOW stress-period record list."""
+    s = set()
+    for rec in rec_list:
+        try:
+            k, i, j = rec[0]
+            s.add((int(i), int(j)))
+        except Exception:
+            continue
+    return s
+
+def ghb_to_ij_set(df):
+    """Return a set of (i, j) pairs from a GHB DataFrame with columns i and j."""
+    s = set()
+    for r in df.itertuples(index=False):
+        s.add((int(r.i), int(r.j)))
+    return s
