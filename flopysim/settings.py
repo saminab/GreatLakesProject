@@ -22,7 +22,20 @@ START_DATE = "2020-01-01"
 END_DATE   = "2023-12-01"
 
 NPER_TEST =13          # set None for full run
-USE_FIVE_LAYER_MODEL = True
+USE_FIVE_LAYER_MODEL = False   # replaced by 8-layer geological structure below
+
+# --- 8-layer geological structure ---
+# Layer 1–3: Soil (fixed thicknesses)
+# Layer 4–6: Quaternary (3 equal sub-layers, variable thickness)
+# Layer 7:   Fractured bedrock (fixed)
+# Layer 8:   Deep bedrock (variable, to MAX_DEPTH_M)
+SOIL_THICKNESSES     = [0.25, 0.25, 0.50]  # m; cumulative = 1.0 m
+FRAC_BEDROCK_THK_M   = 5.0                 # m; fixed fractured-bedrock layer
+MAX_DEPTH_M          = 600.0               # m below land surface; base of deep bedrock
+MIN_QUAT_SUBLAYER_M  = 2.0                 # m; minimum thickness per Quaternary sub-layer
+# HK band index assigned to each of the 8 model layers (0-based, from hk_raw)
+# bands: 0=surficial  1-3=Quaternary  4=bedrock
+HK_LAYER_BAND_MAP    = [0, 0, 0, 1, 2, 3, 3, 4]
 FORCE_CONSTANT_CHD = False
 LAKE_STAGE = 100.0
 USE_GHB = True
