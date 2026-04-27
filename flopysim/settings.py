@@ -62,3 +62,13 @@ MIN_CLUSTER_SIZE = 3          # remove isolated stream/wetland drain groups smal
 
 # --- Plot classes ---
 N_CLASSES = 15                # number of quantile classes for HK colormap
+
+# --- Output plot settings ---
+SCALEBAR_KM = 100             # scale bar length in km for output maps
+N_SHOW_MAX  = 6               # max number of stress-period maps to show in one figure
+
+# --- Unit conversion ---
+FT_TO_M = 0.3048              # feet to metres
+
+# --- Well observation layer ---
+WELL_LAYER = "GLB_all_wells_2025_mi_update"   # layer name inside the wells GDB

@@ -553,29 +553,72 @@ def ensure_3d(arr, nlay, nrow, ncol):
         raise ValueError(f"Unexpected array ndim: {arr.ndim}")
 
 def get_extent(xorigin, yorigin, delr, delc, nrow, ncol):
-    xmin = xorigin
-    xmax = xorigin + np.sum(delr)
-    ymin = yorigin
-    ymax = yorigin + np.sum(delc)
-    return [xmin, xmax, ymin, ymax]
+    # handles both scalar (uniform) and array (variable) cell sizes
+    width  = ncol * float(delr) if np.ndim(delr) == 0 else float(np.sum(delr))
+    height = nrow * float(delc) if np.ndim(delc) == 0 else float(np.sum(delc))
+    return [xorigin, xorigin + width, yorigin, yorigin + height]
 
-def mask_model_array(arr2d, idomain_layer):
-    out = np.array(arr2d, dtype=float)
-    out[idomain_layer <= 0] = np.nan
-    return out
+def mask_model_array(arr, idomain_layer=None, huge=1e20):
+    """Mask MODFLOW placeholder values (|val| >= huge) and optionally inactive cells."""
+    a = np.array(arr, dtype=float)
+    a[np.abs(a) >= huge] = np.nan
+    if idomain_layer is not None:
+        a = np.where(np.asarray(idomain_layer) > 0, a, np.nan)
+    return a
 
-def get_date_labels(start_date, nper):
-    return pd.date_range(start=start_date, periods=nper, freq="MS")
+def get_date_labels(nper, months=None):
+    """Return YYYY-MM strings for plot axes, falling back to 'SP N' labels."""
+    if months is not None and len(months) >= nper:
+        return [pd.to_datetime(m).strftime("%Y-%m") for m in months[:nper]]
+    return [f"SP {i + 1}" for i in range(nper)]
 
-def get_water_table(head_t, idomain, huge=1e20):
+def get_water_table(head_t, idomain, huge=1e29):
+    """Water table = first valid head downward; masks MF6 dry-cell placeholder (1e30)."""
     nlay, nrow, ncol = head_t.shape
     wt = np.full((nrow, ncol), np.nan, dtype=float)
     for k in range(nlay):
         hk = np.array(head_t[k], dtype=float)
-        hk[(idomain[k] <= 0) | (hk > huge)] = np.nan
+        hk[np.abs(hk) >= huge] = np.nan
+        hk[idomain[k] <= 0]    = np.nan
+        hk[hk >  10000]        = np.nan   # above realistic surface elevation
+        hk[hk < -1000]         = np.nan   # below realistic head
         take = np.isnan(wt) & np.isfinite(hk)
         wt[take] = hk[take]
     return wt
+
+def get_depth_to_water(head_t, idomain, top, clip_negative=True):
+    """Depth to water table (top - water_table). Optionally clip negative (artesian) values."""
+    wt  = get_water_table(head_t, idomain)
+    dtw = np.array(top, dtype=float) - wt
+    dtw[~np.isfinite(wt)] = np.nan
+    if clip_negative:
+        dtw = np.where(np.isfinite(dtw), np.maximum(dtw, 0.0), np.nan)
+    return dtw
+
+def robust_limits(arr, qlow=2, qhigh=98, symmetric=False):
+    """Return (vmin, vmax) as percentile-based color limits, ignoring non-finite values."""
+    a = np.asarray(arr, dtype=float)
+    a = a[np.isfinite(a)]
+    if a.size == 0:
+        return 0.0, 1.0
+    vmin = float(np.nanpercentile(a, qlow))
+    vmax = float(np.nanpercentile(a, qhigh))
+    if symmetric:
+        vmax_abs = max(abs(vmin), abs(vmax))
+        return -vmax_abs, vmax_abs
+    return vmin, vmax
+
+def extract_head_series(hdobj, kstpkper_list, layer, row, col, idomain3d, huge=1e20):
+    """Extract a head time series at a single model cell, replacing dry/inactive with NaN."""
+    vals = []
+    for kp in kstpkper_list:
+        h = hdobj.get_data(kstpkper=kp)
+        v = float(h[layer, row, col])
+        if abs(v) >= huge or idomain3d[layer, row, col] <= 0:
+            vals.append(np.nan)
+        else:
+            vals.append(v)
+    return np.array(vals, dtype=float)
 
 def plot_bc_masks(chd_rec, drn_rec, xorigin, yorigin, delr, delc, nrow, ncol, idomain=None):
     extent = get_extent(xorigin, yorigin, delr, delc, nrow, ncol)
