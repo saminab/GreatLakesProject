@@ -1,3 +1,4 @@
+from Imports import *
 # output files
 OUT_GHB_TABLE   = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes_GHB_cells_currentGrid.csv"
 OUT_STAGE_TABLE = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes_stage_monthly_for_model.csv"
@@ -16,3 +17,7 @@ out_compare_fig  = r"D:\Users\abolmaal\modelling\Modflow\Testing_6\Observation_C
 out_dtw_fig      = r"D:\Users\abolmaal\modelling\Modflow\Testing_6\Observation_Comparison\observed_vs_simulated_dtw.png"
 
 Simulation_dir = r"D:\Users\abolmaal\modelling\Modflow\Testing_6"
+drain_elev_aligned = os.path.join(Simulation_dir, "drain_elevation_aligned.tif")
+drain_presence_raw = os.path.join(Simulation_dir, "drain_presence_raw.tif")
+drain_frac_aligned = os.path.join(Simulation_dir, "drain_fraction_aligned.tif")
+

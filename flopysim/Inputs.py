@@ -35,6 +35,14 @@ fieldInputConstHeadElev = "head"
 OUT_GHB_TABLE = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes_GHB_cells.csv"
 OUT_STAGE_TABLE = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes_stage_monthly_for_model.csv"
 
+
+
+# pathInputDrn = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\NHD\streams_3174_clip_to_modelgrid.shp"
+# fieldInputDrnWidth = "WIDTH_M"
+
+nameInputDrainElev = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Drains\drain_elevation.tif"
+
+
 #LAKES_SHP = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes.shp"
 pathLakePoly = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes.shp"
 
