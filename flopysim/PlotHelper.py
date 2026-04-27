@@ -126,3 +126,49 @@ def row(name, arr, terr, ring, unit=""):
           f"{t.min():>7.2g} {np.median(t):>7.2g} {t.max():>7.2g} "
           f"| {r.min():>6.2g} {np.median(r):>6.2g} {r.max():>6.2g} {unit}")
 
+def add_north_arrow(ax, x=0.92, y=0.90, size=0.10):
+    """Add a north arrow annotation to ax using axes-fraction coordinates."""
+    ax.annotate(
+        "N",
+        xy=(x, y), xytext=(x, y - size),
+        xycoords="axes fraction", textcoords="axes fraction",
+        ha="center", va="center",
+        fontsize=12, fontweight="bold",
+        arrowprops=dict(facecolor="black", edgecolor="black", width=3, headwidth=10),
+    )
+
+def add_scale_bar(ax, delr, delc, length_km=100, loc="lower left"):
+    """Add an anchored scale bar. delr/delc needed to set bar height proportional to cell size."""
+    fontprops = fm.FontProperties(size=10)
+    scalebar = AnchoredSizeBar(
+        ax.transData,
+        length_km * 1000.0,
+        f"{length_km} km",
+        loc=loc,
+        pad=0.4,
+        color="black",
+        frameon=False,
+        size_vertical=max(delc[0], delr[0]) * 2.0,
+        fontproperties=fontprops,
+    )
+    ax.add_artist(scalebar)
+
+def add_dtw_colorbar(fig, pcm, ax_or_axes, bounds):
+    """Add a depth-to-water colorbar with class-midpoint tick labels."""
+    cbar = fig.colorbar(
+        pcm,
+        ax=ax_or_axes,
+        boundaries=bounds,
+        ticks=bounds,
+        spacing="proportional",
+        extend="max",
+        shrink=0.82,
+    )
+    tick_locs = [(bounds[i] + bounds[i + 1]) / 2 for i in range(len(bounds) - 1)]
+    cbar.set_ticks(tick_locs)
+    labels = [f"{bounds[i]}–{bounds[i+1]}" for i in range(len(bounds) - 2)]
+    labels.append(f">{bounds[-2]}")
+    cbar.set_ticklabels(labels)
+    cbar.set_label("Depth to groundwater (m below ground level)")
+    return cbar
+

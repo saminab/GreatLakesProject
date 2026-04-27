@@ -60,5 +60,8 @@ gdb_path = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\NH
 pathInputGHBFeature = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes_buffer10km.shp"
 
 layer_name = "streams_3174"   # change if your FileGDB layer name differs
-# Figure_dir 
+# Figure_dir
 fig_dir = r"D:\Users\abolmaal\modelling\Figs\testing6"
+
+# --- Water-wells geodatabase (observation comparison) ---
+wells_gdb_path = r"S:\Data\GIS_Data\Derived\Great_Lakes_Basin\Watersheds\Water_Wells\GLB_water_wells.gdb"
