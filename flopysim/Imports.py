@@ -2,6 +2,7 @@
 import os
 import gc
 import time
+from pathlib import Path
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"  # helps reading NetCDF/HDF5 from network drives on Windows
 # remove conflicting PROJ environment variables
 os.environ.pop("PROJ_LIB", None)
@@ -12,7 +13,6 @@ print("PROJ_DATA =", os.environ.get("PROJ_DATA"))
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="pyogrio")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-from pathlib import Path
 import re, glob, shutil, tempfile, calendar
 
 import numpy as np
