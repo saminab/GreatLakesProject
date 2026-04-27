@@ -7,6 +7,7 @@
 # - recharge helpers
 # - GHB helpers
 # - DRN helper builders
+# - run configuration export
 from pathlib import Path
 import os, re, gc, shutil, calendar, time, tempfile
 
@@ -1255,3 +1256,133 @@ def ghb_to_ij_set(df):
     for r in df.itertuples(index=False):
         s.add((int(r.i), int(r.j)))
     return s
+
+
+# =============================================================================
+# RUN CONFIGURATION EXPORT
+# =============================================================================
+
+def save_run_config(sim_ws, config_path=None):
+    """
+    Save a snapshot of config.py and a plain-text run summary into sim_ws.
+
+    Two files are written:
+      config_snapshot.py  -- verbatim copy of config.py (re-runnable)
+      run_summary.txt     -- human-readable key-parameter table with timestamp
+
+    Parameters
+    ----------
+    sim_ws      : str  path to the simulation workspace directory
+    config_path : str  path to config.py; auto-detected from Helper.py location if None
+    """
+    import importlib.util, subprocess, datetime
+
+    os.makedirs(sim_ws, exist_ok=True)
+
+    if config_path is None:
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.py')
+
+    if not os.path.exists(config_path):
+        print(f'WARNING: config.py not found at {config_path} -- skipping snapshot.')
+        return
+
+    # 1. verbatim copy of config.py
+    snapshot_py = os.path.join(sim_ws, 'config_snapshot.py')
+    shutil.copy2(config_path, snapshot_py)
+
+    # 2. load config values for the summary
+    spec = importlib.util.spec_from_file_location('_cfg_snap', config_path)
+    cfg  = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cfg)
+
+    def g(attr):
+        return getattr(cfg, attr, 'not set')
+
+    # 3. git hash (best-effort)
+    git_hash = 'unavailable'
+    try:
+        r = subprocess.run(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            capture_output=True, text=True,
+            cwd=os.path.dirname(config_path)
+        )
+        if r.returncode == 0:
+            git_hash = r.stdout.strip()
+    except Exception:
+        pass
+
+    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    sep = '=' * 60
+
+    rows = [
+        sep,
+        '  MODFLOW 6 RUN CONFIGURATION SNAPSHOT',
+        sep,
+        f'  Timestamp       : {now}',
+        f'  Git hash        : {git_hash}',
+        f'  config.py       : {config_path}',
+        '',
+        '--- Model Identity ---',
+        f'  nameSim         : {g("nameSim")}',
+        f'  nameModel       : {g("nameModel")}',
+        '',
+        '--- Grid ---',
+        f'  CELL            : {g("CELL")} m',
+        f'  EPSG            : {g("EPSG")}',
+        '',
+        '--- Time ---',
+        f'  START_DATE      : {g("START_DATE")}',
+        f'  END_DATE        : {g("END_DATE")}',
+        f'  NPER_TEST       : {g("NPER_TEST")}',
+        '',
+        '--- Layer Structure ---',
+        f'  SOIL_THICKNESSES    : {g("SOIL_THICKNESSES")}',
+        f'  FRAC_BEDROCK_THK_M  : {g("FRAC_BEDROCK_THK_M")} m',
+        f'  MAX_DEPTH_M         : {g("MAX_DEPTH_M")} m',
+        f'  MIN_QUAT_SUBLAYER_M : {g("MIN_QUAT_SUBLAYER_M")} m',
+        f'  HK_LAYER_BAND_MAP   : {g("HK_LAYER_BAND_MAP")}',
+        '',
+        '--- Boundary Conditions ---',
+        f'  USE_GHB         : {g("USE_GHB")}',
+        f'  USE_DRN         : {g("USE_DRN")}',
+        f'  USE_CHD         : {g("USE_CHD")}',
+        f'  USE_WETLAND_DRN : {g("USE_WETLAND_DRN")}',
+        '',
+        '--- GHB Parameters ---',
+        f'  GHB_BED_THICKNESS_M : {g("GHB_BED_THICKNESS_M")} m',
+        f'  GHB_KV_DIVISOR      : {g("GHB_KV_DIVISOR")}',
+        f'  GHB_COND_MULT       : {g("GHB_COND_MULT")}',
+        f'  STAGE_CAP_OFFSET    : {g("STAGE_CAP_OFFSET")} m',
+        '',
+        '--- DRN / Seepage Parameters ---',
+        f'  DRN_K_DIVISOR    : {g("DRN_K_DIVISOR")}',
+        f'  DRN_COND_MULT    : {g("DRN_COND_MULT")}',
+        f'  DRN_DEPTH_M      : {g("DRN_DEPTH_M")} m',
+        f'  TSOIL_M          : {g("TSOIL_M")} m',
+        f'  SURF_AREA_FRAC   : {g("SURF_AREA_FRAC")}',
+        f'  SURF_ELEV_OFFSET : {g("SURF_ELEV_OFFSET")} m',
+        '',
+        '--- Hydraulic Properties ---',
+        f'  KV_ANISOTROPY_RATIO : {g("KV_ANISOTROPY_RATIO")}',
+        '',
+        '--- Starting Heads ---',
+        f'  TOP_BUFFER    : {g("TOP_BUFFER")} m',
+        f'  MIN_ABOVE_BOT : {g("MIN_ABOVE_BOT")} m',
+        f'  MIN_SAT_FRAC  : {g("MIN_SAT_FRAC")}',
+        '',
+        '--- Key Input Files ---',
+        f'  nameInputTop       : {g("nameInputTop")}',
+        f'  nameInputLayBot    : {g("nameInputLayBot")}',
+        f'  nameInputHorizCond : {g("nameInputHorizCond")}',
+        f'  nameInputStrt      : {g("nameInputStrt")}',
+        f'  nameInputDrainElev : {g("nameInputDrainElev")}',
+        f'  NLDAS_ROOT_PATH    : {g("NLDAS_ROOT_PATH")}',
+        sep,
+    ]
+
+    summary_path = os.path.join(sim_ws, 'run_summary.txt')
+    with open(summary_path, 'w', encoding='utf-8') as fh:
+        fh.write('\n'.join(rows) + '\n')
+
+    print(f'Config snapshot : {snapshot_py}')
+    print(f'Run summary     : {summary_path}')
