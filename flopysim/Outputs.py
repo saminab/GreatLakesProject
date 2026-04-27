@@ -15,3 +15,4 @@ out_compare_csv  = r"D:\Users\abolmaal\modelling\Modflow\Testing_6\Observation_C
 out_compare_fig  = r"D:\Users\abolmaal\modelling\Modflow\Testing_6\Observation_Comparison\observed_vs_simulated_heads.png"
 out_dtw_fig      = r"D:\Users\abolmaal\modelling\Modflow\Testing_6\Observation_Comparison\observed_vs_simulated_dtw.png"
 
+Simulation_dir = r"D:\Users\abolmaal\modelling\Modflow\Testing_6"

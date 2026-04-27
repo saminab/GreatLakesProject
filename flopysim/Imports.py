@@ -36,6 +36,7 @@ import rasterio as rio
 import fiona
 from scipy.ndimage import label
 
+import pyogrio
 import flopy.utils.binaryfile as bf
 import matplotlib.dates as mdates
 from matplotlib.colors import TwoSlopeNorm
