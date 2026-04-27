@@ -3,7 +3,8 @@
     "allow": [
       "Bash(python3)",
       "Bash(python)",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Bash(python patch_cell6.py)"
     ]
   }
 }
