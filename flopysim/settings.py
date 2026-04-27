@@ -1,6 +1,10 @@
 # --- Model identity ---
 nameSim   = "Greatlakes"
 nameModel = "Testing_6"  # MF6 model name; package files will be Testing.dis, Testing.rch, etc.
+
+# --- Model grid ---
+CELL = 1000    # cell size in metres (1 km grid)
+EPSG = 3174    # Great Lakes Basin Albers projection
 # pathInputDrn = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\NHD\streams_3174_clip_to_modelgrid.shp"
 # fieldInputDrnWidth = "WIDTH_M"
 USE_DRN = True

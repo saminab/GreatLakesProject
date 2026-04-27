@@ -1,3 +1,6 @@
+from pathlib import Path
+from settings import *
+
 # --- MF6 executable ---
 bindir = Path(r"D:\Users\abolmaal\modelling\Modflow\helper")
 exe_path = str((bindir / "mf6.exe").resolve())
