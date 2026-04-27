@@ -59,12 +59,14 @@ ALIGNED_DIR.mkdir(parents=True, exist_ok=True)
 template_tif = str(GRID_DIR / f"template_{CELL}m_epsg{EPSG}.tif")
 idomain_tif  = str(GRID_DIR / f"idomain_{CELL}m_epsg{EPSG}.tif")
 
-top_aligned   = str(ALIGNED_DIR / f"TOP_{CELL}m.tif")
-botm_aligned  = str(ALIGNED_DIR / f"BOTM_{CELL}m.tif")
-hk_aligned    = str(ALIGNED_DIR / f"HK_{CELL}m.tif")
-mask_aligned  = str(ALIGNED_DIR / f"MASK_{CELL}m.tif")
-strt_aligned  = str(ALIGNED_DIR / f"STRT_{CELL}m.tif")
-Ibound_aligned = str(ALIGNED_DIR / f"IBOUND_{CELL}m.tif")
+top_aligned        = str(ALIGNED_DIR / f"TOP_{CELL}m.tif")
+botm_aligned       = str(ALIGNED_DIR / f"BOTM_{CELL}m.tif")
+hk_aligned         = str(ALIGNED_DIR / f"HK_{CELL}m.tif")
+mask_aligned       = str(ALIGNED_DIR / f"MASK_{CELL}m.tif")
+strt_aligned       = str(ALIGNED_DIR / f"STRT_{CELL}m.tif")
+Ibound_aligned     = str(ALIGNED_DIR / f"IBOUND_{CELL}m.tif")
+drain_elev_aligned = str(ALIGNED_DIR / f"DRAIN_ELEV_{CELL}m.tif")
+drain_frac_aligned = str(ALIGNED_DIR / f"DRAIN_FRAC_{CELL}m.tif")
 
 # --- Streams source for DRN build ---
 gdb_path = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\NHD\streams_tmp.gdb"
