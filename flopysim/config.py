@@ -61,7 +61,7 @@ nameInputBathy      = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\mode
 # FILE PATHS — VECTOR INPUTS
 # ---------------------------------------------------------------------------
 pathLakePoly        = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes.shp"
-pathInputGHBFeature = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes_buffer10km.shp"
+pathInputGHBFeature = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes_GHB_fullLake.shp"
 pathInputConstHead  = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Costantheads\CHD_cells_points_dem.shp"
 fieldInputConstHeadElev = "head"
 gdb_path            = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\NHD\streams_tmp.gdb"
