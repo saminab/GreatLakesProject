@@ -72,8 +72,8 @@ lake_name_field     = "lake_name"
 # ---------------------------------------------------------------------------
 # FILE PATHS — GHB TABLES
 # ---------------------------------------------------------------------------
-OUT_GHB_TABLE   = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes_GHB_cells.csv"
-OUT_STAGE_TABLE = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes_stage_monthly_for_model.csv"
+OUT_GHB_TABLE   = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\GHBs\GreatLakes_GHB_cells.csv"
+OUT_STAGE_TABLE = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\GHBs\GreatLakes_stage_monthly_for_model.csv"
 
 
 # ---------------------------------------------------------------------------
