@@ -54,6 +54,7 @@ nameInputLayBot     = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\mode
 nameInputHorizCond  = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\HK\HK_5band_1000m.tif"
 nameInputStrt       = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Wells\starting_heads_clamped_1000m.tif"
 nameInputDrainElev  = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Drains\drain_elevation.tif"
+nameInputBathy      = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\GreatLakes_bathymetry\GreatLakes_bathymetry_contours.tif"
 
 
 # ---------------------------------------------------------------------------
@@ -219,44 +220,44 @@ FT_TO_M = 0.3048                          # feet to metres
 # An executed copy of the notebook is saved alongside the original so you
 # keep a record of the run with all cell outputs.
 # ---------------------------------------------------------------------------
-if __name__ == "__main__":
-    import subprocess, sys, os, datetime
+# if __name__ == "__main__":
+#     import subprocess, sys, os, datetime
 
-    here     = os.path.dirname(os.path.abspath(__file__))
-    notebook = os.path.join(here, "Modeflow6_SImulation.ipynb")
+#     here     = os.path.dirname(os.path.abspath(__file__))
+#     notebook = os.path.join(here, "Modeflow6_SImulation.ipynb")
 
-    if not os.path.exists(notebook):
-        print(f"ERROR: notebook not found: {notebook}")
-        sys.exit(1)
+#     if not os.path.exists(notebook):
+#         print(f"ERROR: notebook not found: {notebook}")
+#         sys.exit(1)
 
-    # timestamped output copy so each run is preserved
-    stamp    = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_nb   = os.path.join(here, f"Modeflow6_SImulation_run_{stamp}.ipynb")
+#     # timestamped output copy so each run is preserved
+#     stamp    = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+#     out_nb   = os.path.join(here, f"Modeflow6_SImulation_run_{stamp}.ipynb")
 
-    print("=" * 60)
-    print("  Running MODFLOW 6 simulation")
-    print(f"  nameModel  : {nameModel}")
-    print(f"  START_DATE : {START_DATE}")
-    print(f"  END_DATE   : {END_DATE}")
-    print(f"  NPER_TEST  : {NPER_TEST}")
-    print(f"  notebook   : {notebook}")
-    print(f"  output nb  : {out_nb}")
-    print("=" * 60)
+#     print("=" * 60)
+#     print("  Running MODFLOW 6 simulation")
+#     print(f"  nameModel  : {nameModel}")
+#     print(f"  START_DATE : {START_DATE}")
+#     print(f"  END_DATE   : {END_DATE}")
+#     print(f"  NPER_TEST  : {NPER_TEST}")
+#     print(f"  notebook   : {notebook}")
+#     print(f"  output nb  : {out_nb}")
+#     print("=" * 60)
 
-    result = subprocess.run(
-        [
-            sys.executable, "-m", "jupyter", "nbconvert",
-            "--to", "notebook",
-            "--execute",
-            "--ExecutePreprocessor.timeout=86400",   # 24-hour ceiling
-            "--ExecutePreprocessor.kernel_name=python3",
-            "--output", out_nb,
-            notebook,
-        ]
-    )
+#     result = subprocess.run(
+#         [
+#             sys.executable, "-m", "jupyter", "nbconvert",
+#             "--to", "notebook",
+#             "--execute",
+#             "--ExecutePreprocessor.timeout=86400",   # 24-hour ceiling
+#             "--ExecutePreprocessor.kernel_name=python3",
+#             "--output", out_nb,
+#             notebook,
+#         ]
+#     )
 
-    if result.returncode == 0:
-        print(f"\nSimulation complete.  Executed notebook saved to:\n  {out_nb}")
-    else:
-        print(f"\nSimulation FAILED (exit code {result.returncode}).")
-        sys.exit(result.returncode)
+#     if result.returncode == 0:
+#         print(f"\nSimulation complete.  Executed notebook saved to:\n  {out_nb}")
+#     else:
+#         print(f"\nSimulation FAILED (exit code {result.returncode}).")
+#         sys.exit(result.returncode)
