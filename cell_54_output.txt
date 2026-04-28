@@ -1,0 +1,10 @@
+CELL 54 - FULL SOURCE CODE
+================================================================================
+
+  1: sim.write_simulation()
+  2: success, buff = sim.run_simulation()
+  3: print("Run success:", success)
+  4: if not success:
+  5:     with open(os.path.join(sim_ws, f"{nameModel}.lst")) as f:
+  6:         lines = f.readlines()
+  7:     print("".join(lines[-50:]))

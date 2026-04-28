@@ -11,8 +11,8 @@
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel = "Testing_6"        # used for MF6 package names and the sim folder
-
+nameModel = "Testing_7"        # used for MF6 package names and the sim folder
+namemodel_SS = "Testing_7_SS"  # used for steady-state model (prep and testing)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -93,21 +93,21 @@ WELL_LAYER      = "GLB_all_wells_2025_mi_update"
 # ---------------------------------------------------------------------------
 # FILE PATHS — FIGURES
 # ---------------------------------------------------------------------------
-fig_dir          = r"D:\Users\abolmaal\modelling\Figs\testing6"
-out_fig_ts       = r"D:\Users\abolmaal\modelling\Figs\Testing_6\depthtowatertable.png"
-out_fig_maps     = r"D:\Users\abolmaal\modelling\Figs\Testing_6\depthtowater_maps_blue_classes.png"
-out_fig_final    = r"D:\Users\abolmaal\modelling\Figs\Testing_6\depthtowater_final_blue_classes.png"
+fig_dir          = r"D:\Users\abolmaal\modelling\Figs\Testing_7"
+out_fig_ts       = r"D:\Users\abolmaal\modelling\Figs\Testing_7\depthtowatertable.png"
+out_fig_maps     = r"D:\Users\abolmaal\modelling\Figs\Testing_7\depthtowater_maps_blue_classes.png"
+out_fig_final    = r"D:\Users\abolmaal\modelling\Figs\Testing_7\depthtowater_final_blue_classes.png"
 
 
 # ---------------------------------------------------------------------------
 # FILE PATHS — OUTPUT TABLES
 # ---------------------------------------------------------------------------
 obs_out_dir     = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Observations"
-compare_out_dir = r"D:\Users\abolmaal\modelling\Modflow\Testing_6\Observation_Comparison"
+compare_out_dir = r"D:\Users\abolmaal\modelling\Modflow\Testing_7\Observation_Comparison"
 out_obs_csv     = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Observations\GLB_well_observations_for_MODFLOW.csv"
-out_compare_csv = r"D:\Users\abolmaal\modelling\Modflow\Testing_6\Observation_Comparison\well_observed_vs_simulated_heads.csv"
-out_compare_fig = r"D:\Users\abolmaal\modelling\Modflow\Testing_6\Observation_Comparison\observed_vs_simulated_heads.png"
-out_dtw_fig     = r"D:\Users\abolmaal\modelling\Modflow\Testing_6\Observation_Comparison\observed_vs_simulated_dtw.png"
+out_compare_csv = r"D:\Users\abolmaal\modelling\Modflow\Testing_7\Observation_Comparison\well_observed_vs_simulated_heads.csv"
+out_compare_fig = r"D:\Users\abolmaal\modelling\Modflow\Testing_7\Observation_Comparison\observed_vs_simulated_heads.png"
+out_dtw_fig     = r"D:\Users\abolmaal\modelling\Modflow\Testing_7\Observation_Comparison\observed_vs_simulated_dtw.png"
 
 
 # ---------------------------------------------------------------------------
