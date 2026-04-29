@@ -1,0 +1,182 @@
+CELL 53 - FULL SOURCE CODE
+================================================================================
+
+  1: # Close possible open handles from earlier tests
+  2: for varname in ["cbc", "hds", "bud", "headfile", "cellbudgetfile", "hdobj", "cbbobj"]:
+  3:     obj = globals().get(varname, None)
+  4:     try:
+  5:         if obj is not None and hasattr(obj, "close"):
+  6:             obj.close()
+  7:             print(f"Closed {varname}")
+  8:     except Exception as e:
+  9:         print(f"Could not close {varname}: {repr(e)}")
+ 10: 
+ 11: if os.path.isdir(sim_ws):
+ 12:     safe_rmtree(sim_ws)
+ 13: os.makedirs(sim_ws, exist_ok=True)
+ 14: 
+ 15: sim = flopy.mf6.MFSimulation(sim_name=nameSim, sim_ws=sim_ws, exe_name=exe_path)
+ 16: 
+ 17: tdis = flopy.mf6.ModflowTdis(
+ 18:     sim,
+ 19:     time_units="DAYS",
+ 20:     nper=len(perioddata_run),
+ 21:     perioddata=perioddata_run,
+ 22:     start_date_time=START_DATE,
+ 23: )
+ 24: # Steady state spin-up in period 0, then transient periods 1+ with same length as perioddata_run
+ 25: ims = flopy.mf6.ModflowIms(
+ 26:     sim,
+ 27:     pname="ims",
+ 28:     complexity="MODERATE",
+ 29:     outer_maximum=500,          # increased from 100
+ 30:     inner_maximum=300,          # increased from 200
+ 31:     outer_dvclose=1e-3,         # tightened from 1e-2
+ 32:     inner_dvclose=1e-3,         # tightened from 1e-2
+ 33:     rcloserecord=1e-3,          # tightened from 1e-2
+ 34:     linear_acceleration="BICGSTAB",
+ 35:     under_relaxation="DBD",
+ 36:     under_relaxation_theta=0.9,  # add damping
+ 37:     under_relaxation_kappa=0.0001,
+ 38:     under_relaxation_gamma=0.0,
+ 39:     print_option="SUMMARY",
+ 40:     filename=f"{nameModel}.ims",
+ 41: )
+ 42: 
+ 43: gwf = flopy.mf6.ModflowGwf(sim, modelname=nameModel, save_flows=True)
+ 44: sim.register_ims_package(ims, [gwf.name])
+ 45: 
+ 46: dis = flopy.mf6.ModflowGwfdis(
+ 47:     gwf,
+ 48:     nlay=nlay, nrow=nrow, ncol=ncol,
+ 49:     delr=delr, delc=delc,
+ 50:     top=top2d,
+ 51:     botm=botm3d,
+ 52:     idomain=idomain,
+ 53:     xorigin=xorigin, yorigin=yorigin,
+ 54: )
+ 55: 
+ 56: icelltype = [1] + [0] * (nlay - 1)
+ 57: 
+ 58: npf = flopy.mf6.ModflowGwfnpf(
+ 59:     gwf,
+ 60:     icelltype=icelltype,
+ 61:     k=hk3d,
+ 62:     k33=k33_3d,
+ 63:     save_specific_discharge=True,
+ 64: )
+ 65: 
+ 66: ic = flopy.mf6.ModflowGwfic(gwf, strt=strt)
+ 67: 
+ 68: # ---- CHANGED: period 0 = steady-state spin-up, periods 1+ = transient ----
+ 69: sto = flopy.mf6.ModflowGwfsto(
+ 70:     gwf,
+ 71:     ss=1e-6,
+ 72:     sy=0.1,
+ 73:     steady_state=False,
+ 74:     transient=True,
+ 75: )
+ 76: 
+ 77: 
+ 78: oc = flopy.mf6.ModflowGwfoc(
+ 79:     gwf,
+ 80:     head_filerecord=f"{nameModel}.hds",
+ 81:     budget_filerecord=f"{nameModel}.cbb",
+ 82:     saverecord=[("HEAD", "ALL"), ("BUDGET", "ALL")],
+ 83:     printrecord=[("HEAD", "LAST"), ("BUDGET", "LAST")],
+ 84: )
+ 85: 
+ 86: drn_rec = drn_rec if "drn_rec" in globals() else []
+ 87: wet_drn_rec = wet_drn_rec if "wet_drn_rec" in globals() else []
+ 88: 
+ 89: if USE_DRN and len(drn_rec) > 0:
+ 90:     drn_spd = {per: drn_rec for per in range(len(perioddata_run))}
+ 91:     drn = flopy.mf6.ModflowGwfdrn(
+ 92:         gwf,
+ 93:         pname="DRN",
+ 94:         filename=f"{nameModel}.drn",
+ 95:         maxbound=len(drn_rec),
+ 96:         stress_period_data=drn_spd,
+ 97:         save_flows=True,
+ 98:     )
+ 99:     print("✅ DRN package added:", len(drn_rec), "cells")
+100:     print("   DRN stress periods:", len(drn_spd))
+101: else:
+102:     print("Skipping DRN package")
+103: 
+104: if USE_GHB:
+105:     if "ghb_spd" not in globals():
+106:         raise ValueError("ghb_spd does not exist. Run Part 10 first.")
+107:     if ghb_spd is None:
+108:         raise ValueError("ghb_spd is None. Check Part 10.")
+109:     if len(ghb_spd) == 0:
+110:         raise ValueError("ghb_spd is empty. Check Part 10.")
+111: 
+112: if USE_GHB and ghb_spd is not None:
+113:     print("Using GHB stress periods:", len(ghb_spd))
+114:     print("Using GHB maxbound:", max(len(v) for v in ghb_spd.values()))
+115:     if "ghb_cells_df" in globals():
+116:         print("Using GHB lakes:", sorted(ghb_cells_df["lake_name"].unique()))
+117: 
+118:     ghb = flopy.mf6.ModflowGwfghb(
+119:         gwf,
+120:         pname="GHB_gl",
+121:         filename=f"{nameModel}.ghb",
+122:         boundnames=True,
+123:         print_input=True,
+124:         save_flows=True,
+125:         maxbound=max(len(v) for v in ghb_spd.values()),
+126:         stress_period_data=ghb_spd,
+127:     )
+128:     print("✅ GHB package added")
+129: else:
+130:     print("Skipping GHB package")
+131: 
+132: rcha = flopy.mf6.ModflowGwfrcha(
+133:     gwf,
+134:     pname="RCHA",
+135:     filename=f"{nameModel}.rcha",
+136:     recharge=rch_spd,
+137: )
+138: print("✅ RCH package added:", len(rch_spd), "periods")
+139: 
+140: # ---- ADDED: final consistency check before writing ----
+141: print("\n--- Final period count check ---")
+142: print(f"perioddata_run: {len(perioddata_run)}")
+143: print(f"rch_spd:        {len(rch_spd)}")
+144: print(f"ghb_spd:        {len(ghb_spd)}")
+145: print(f"drn_spd:        {len(drn_spd)}")
+146: assert len(rch_spd) == len(perioddata_run), \
+147:     f"rch_spd has {len(rch_spd)} periods, expected {len(perioddata_run)}"
+148: assert len(ghb_spd) == len(perioddata_run), \
+149:     f"ghb_spd has {len(ghb_spd)} periods, expected {len(perioddata_run)}"
+150: assert len(drn_spd) == len(perioddata_run), \
+151:     f"drn_spd has {len(drn_spd)} periods, expected {len(perioddata_run)}"
+152: print("✅ All period counts match — safe to write and run")
+153: 
+154: def rec_to_set(rec_list):
+155:     out = set()
+156:     for rec in rec_list:
+157:         try:
+158:             k, i, j = rec[0]
+159:             out.add((int(k), int(i), int(j)))
+160:         except Exception:
+161:             pass
+162:     return out
+163: 
+164: drn_set = rec_to_set(drn_rec)
+165: wet_drn_set = rec_to_set(wet_drn_rec)
+166: 
+167: ghb_set = set()
+168: if "ghb_spd" in globals() and ghb_spd is not None:
+169:     for per, recs in ghb_spd.items():
+170:         for rec in recs:
+171:             try:
+172:                 k, i, j = rec[0]
+173:                 ghb_set.add((int(k), int(i), int(j)))
+174:             except Exception:
+175:                 pass
+176: 
+177: print("DRN ∩ wetland DRN:", len(drn_set & wet_drn_set))
+178: print("DRN ∩ GHB:", len(drn_set & ghb_set))
+179: print("wetland DRN ∩ GHB:", len(wet_drn_set & ghb_set))
