@@ -4,7 +4,8 @@
       "Bash(python3)",
       "Bash(python)",
       "Bash(python -c ' *)",
-      "Bash(python patch_cell6.py)"
+      "Bash(python patch_cell6.py)",
+      "PowerShell(cmd /c \"D:\\\\Users\\\\abolmaal\\\\softwaters\\\\climate\\\\python.exe -c \"\"import flopy; print\\(flopy.__version__\\)\"\" 2>&1\")"
     ]
   }
 }
