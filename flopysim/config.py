@@ -51,6 +51,7 @@ IBOUND           = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_L
 # ---------------------------------------------------------------------------
 nameInputTop        = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\DEM\DEM_extended20kmbdr_1000m.tif"
 nameInputLayBot     = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Bottom\modelbottom.tif"
+nameInputMidQuat    = r"S:\Data\Other_Data\Xu_2021\Data\10_Subsurface_Geological_Layers\Bottom_Middle_Quaternary_Contact_Surface\Bottom_Middle_Quaternary_Contact_Surface.asc"
 nameInputHorizCond  = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\HK\HK_5band_1000m.tif"
 nameInputStrt       = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Wells\starting_heads_clamped_1000m.tif"
 nameInputDrainElev  = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Drains\drain_elevation.tif"
@@ -111,28 +112,31 @@ out_dtw_fig     = r"D:\Users\abolmaal\modelling\Modflow\Testing_7\Observation_Co
 
 
 # ---------------------------------------------------------------------------
-# 8-LAYER GEOLOGICAL STRUCTURE
+# 5-LAYER GEOLOGICAL STRUCTURE  (no soil layers)
 # ---------------------------------------------------------------------------
-# Layer 1: Soil 1           0 – 0.25 m below surface      (fixed)
-# Layer 2: Soil 2           0.25 – 0.50 m                  (fixed)
-# Layer 3: Soil 3           0.50 – 1.00 m                  (fixed)
-# Layer 4: Quaternary 1     variable  (1/3 of Quat column)
-# Layer 5: Quaternary 2     variable  (1/3 of Quat column)
-# Layer 6: Quaternary 3     variable  (1/3 of Quat column)
-# Layer 7: Fractured bedrock 5 m below bedrock contact     (fixed)
-# Layer 8: Deep bedrock     variable, base at MAX_DEPTH_M
+# Land cells:
+#   Layer 1: Quaternary 1     top=DEM,       bottom=Contact2=(DEM+mid_quat)/2
+#   Layer 2: Quaternary 2     top=Contact2,  bottom=Contact3=mid_quat contact (Xu 2021)
+#   Layer 3: Quaternary 3     top=Contact3,  bottom=Contact4=bedrock (modelbottom.tif)
+#   Layer 4: Fractured bedrock top=Contact4, bottom=Contact4 - 5 m    (fixed)
+#   Layer 5: Deep bedrock      top=Layer4 bot, bottom=surface - MAX_DEPTH_M
 #
-# modelbottom.tif = bedrock contact (top of bedrock / bottom of Quaternary)
-SOIL_THICKNESSES    = [0.25, 0.25, 0.50]   # m; fixed soil layer thicknesses
+# Lake cells (bathymetry override):
+#   Layer 1: Lake water column top=DEM,       bottom=lake floor
+#   Layer 2: Quaternary 1     top=lake floor, bottom=(floor+bedrock)/2
+#   Layer 3: Quaternary 2     top=above,      bottom=bedrock
+#   Layer 4: Fractured bedrock (same as land)
+#   Layer 5: Deep bedrock      (same as land)
+#
+# modelbottom.tif  = bedrock contact (top of bedrock / bottom of Quaternary)
+# nameInputMidQuat = bottom of middle Quaternary contact (Xu 2021)
 FRAC_BEDROCK_THK_M  = 5.0                  # m; fixed fractured-bedrock thickness
 MAX_DEPTH_M         = 600.0                # m below land surface; base of deep bedrock
 MIN_QUAT_SUBLAYER_M = 2.0                  # m; minimum thickness per Quaternary sub-layer
 
-# HK band index (0-based) assigned to each of the 8 model layers
-# hk_raw bands: 0=surficial  1-3=Quaternary  4=bedrock
-HK_LAYER_BAND_MAP   = [0, 0, 0, 1, 2, 3, 3, 4]
-
-USE_FIVE_LAYER_MODEL = False               # legacy flag; kept for reference
+# HK band index (0-based) assigned to each of the 5 model layers
+# hk_raw bands: 0=surficial  1=upper-Quat  2=mid-Quat  3=lower-Quat  4=bedrock
+HK_LAYER_BAND_MAP   = [1, 2, 3, 3, 4]
 
 
 # ---------------------------------------------------------------------------
