@@ -1152,24 +1152,55 @@ def build_drn_from_raster(
 
     ii, jj = np.where(np.isfinite(drain_elev2d) & (drain_frac2d >= min_area_frac))
 
+    n_skipped_inactive = 0
+    n_skipped_below_all = 0
+    n_capped_top = 0
+
     for i, j in zip(ii, jj):
         active_k = np.where(idomain[:, i, j] > 0)[0]
         if len(active_k) == 0:
+            n_skipped_inactive += 1
             continue
-        k = int(active_k[0])
+
+        elev = float(drain_elev2d[i, j])
+
+        # --- Find the model layer that contains this drain elevation ---
+        # Walk active layers from shallowest to deepest; pick the first one
+        # whose vertical extent brackets the drain elevation.
+        # This handles cases where DRN_DEPTH_M exceeds the top-layer thickness
+        # (e.g. Layer 0 is 0.25 m thick but drain is 0.5 m below land surface).
+        k = None
+        for _kk in active_k:
+            _ct = float(top2d[i, j] if _kk == 0 else botm3d[_kk - 1, i, j])
+            _cb = float(botm3d[_kk, i, j])
+            if elev < _ct and elev >= _cb:
+                k = int(_kk)
+                break
+
+        if k is None:
+            # Drain elevation is above the top of all active layers → cap to
+            # just below the shallowest active cell top.
+            if elev >= float(top2d[i, j] if active_k[0] == 0
+                             else botm3d[active_k[0] - 1, i, j]):
+                k = int(active_k[0])
+                cell_top_k = float(top2d[i, j] if k == 0 else botm3d[k - 1, i, j])
+                elev = cell_top_k - elev_eps
+                n_capped_top += 1
+            else:
+                # Elevation is below the bottom of all active layers → skip
+                n_skipped_below_all += 1
+                continue
 
         cell_top = float(top2d[i, j] if k == 0 else botm3d[k - 1, i, j])
         cell_bot = float(botm3d[k, i, j])
         cell_thick = max(cell_top - cell_bot, min_thick)
 
-        elev = float(drain_elev2d[i, j])
+        # Safety clamp: keep elevation strictly inside the cell
+        elev = min(elev, cell_top - elev_eps)
+        elev = max(elev, cell_bot + elev_eps)
 
-        # keep drain elevation inside the cell
-        if elev >= cell_top:
-            elev = cell_top - elev_eps
-        if elev <= cell_bot:
-            continue
-        # calculate the conductance based on the fraction of the cell area covered by the drain and the cell's hydraulic conductivity 
+        # calculate the conductance based on the fraction of the cell area
+        # covered by the drain and the cell's hydraulic conductivity
         area = float(delr[j] * delc[i] * drain_frac2d[i, j])
         if area <= 0:
             continue
@@ -1194,6 +1225,11 @@ def build_drn_from_raster(
             "kcell": kcell,
             "cell_thick": cell_thick,
         })
+
+    print(f"  build_drn_from_raster: {len(recs):,} records built | "
+          f"skipped inactive={n_skipped_inactive:,} | "
+          f"skipped below all layers={n_skipped_below_all:,} | "
+          f"capped above top={n_capped_top:,}")
 
     df = pd.DataFrame(rows)
     return df, recs
