@@ -5,14 +5,15 @@
 # calibration values.  All other Python files (settings.py, Inputs.py) import
 # from here — you never need to touch them directly.
 # =============================================================================
+import os
 
 
 # ---------------------------------------------------------------------------
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Testing_7"        # used for MF6 package names and the sim folder
-nameModel_SS = "Testing_7_SS"    # steady-state spin-up model (heads become STRT for transient)
+nameModel    = "Testing_8"        # used for MF6 package names and the sim folder
+nameModel_SS = "Testing_8_SS"    # steady-state spin-up model (heads become STRT for transient)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -34,6 +35,7 @@ NPER_TEST  = None              # number of periods for a short test run; set Non
 # ---------------------------------------------------------------------------
 MF6_EXE_DIR      = r"D:\Users\abolmaal\modelling\Modflow\helper"
 MODEL_BASE_DIR    = r"D:\Users\abolmaal\modelling\Modflow"     # sim_ws = MODEL_BASE_DIR / nameModel
+FIGS_BASE_DIR     = r"D:\Users\abolmaal\modelling\Figs"        # fig_dir = FIGS_BASE_DIR / nameModel
 
 
 # ---------------------------------------------------------------------------
@@ -92,23 +94,30 @@ WELL_LAYER      = "GLB_all_wells_2025_mi_update"
 
 
 # ---------------------------------------------------------------------------
-# FILE PATHS — FIGURES
+# FILE PATHS — FIGURES  (derived from nameModel; folder created automatically)
 # ---------------------------------------------------------------------------
-fig_dir          = r"D:\Users\abolmaal\modelling\Figs\Testing_7"
-out_fig_ts       = r"D:\Users\abolmaal\modelling\Figs\Testing_7\depthtowatertable.png"
-out_fig_maps     = r"D:\Users\abolmaal\modelling\Figs\Testing_7\depthtowater_maps_blue_classes.png"
-out_fig_final    = r"D:\Users\abolmaal\modelling\Figs\Testing_7\depthtowater_final_blue_classes.png"
+fig_dir          = os.path.join(FIGS_BASE_DIR, nameModel)
+out_fig_ts       = os.path.join(fig_dir, "depthtowatertable.png")
+out_fig_maps     = os.path.join(fig_dir, "depthtowater_maps_blue_classes.png")
+out_fig_final    = os.path.join(fig_dir, "depthtowater_final_blue_classes.png")
 
 
 # ---------------------------------------------------------------------------
-# FILE PATHS — OUTPUT TABLES
+# FILE PATHS — OUTPUT TABLES  (derived from nameModel; folder created automatically)
 # ---------------------------------------------------------------------------
 obs_out_dir     = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Observations"
-compare_out_dir = r"D:\Users\abolmaal\modelling\Modflow\Testing_7\Observation_Comparison"
-out_obs_csv     = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Observations\GLB_well_observations_for_MODFLOW.csv"
-out_compare_csv = r"D:\Users\abolmaal\modelling\Modflow\Testing_7\Observation_Comparison\well_observed_vs_simulated_heads.csv"
-out_compare_fig = r"D:\Users\abolmaal\modelling\Modflow\Testing_7\Observation_Comparison\observed_vs_simulated_heads.png"
-out_dtw_fig     = r"D:\Users\abolmaal\modelling\Modflow\Testing_7\Observation_Comparison\observed_vs_simulated_dtw.png"
+compare_out_dir = os.path.join(MODEL_BASE_DIR, nameModel, "Observation_Comparison")
+out_obs_csv     = os.path.join(obs_out_dir, "GLB_well_observations_for_MODFLOW.csv")
+out_compare_csv = os.path.join(fig_dir, "well_observed_vs_simulated_heads.csv")
+out_compare_fig = os.path.join(fig_dir, "observed_vs_simulated_heads.png")
+out_dtw_fig     = os.path.join(fig_dir, "observed_vs_simulated_dtw.png")
+
+# Create model-specific output directories when config is imported
+os.makedirs(os.path.join(MODEL_BASE_DIR, nameModel), exist_ok=True)
+os.makedirs(os.path.join(MODEL_BASE_DIR, nameModel_SS), exist_ok=True)
+os.makedirs(fig_dir, exist_ok=True)
+os.makedirs(compare_out_dir, exist_ok=True)
+os.makedirs(obs_out_dir, exist_ok=True)
 
 
 # ---------------------------------------------------------------------------
