@@ -143,9 +143,9 @@ FRAC_BEDROCK_THK_M  = 5.0                  # m; fixed fractured-bedrock thicknes
 MAX_DEPTH_M         = 600.0                # base of deep bedrock = -MAX_DEPTH_M m ASL (fixed absolute elevation)
 MIN_QUAT_SUBLAYER_M = 2.0                  # m; minimum thickness per Quaternary sub-layer
 
-# HK band index (0-based) assigned to each of the 5 model layers
-# hk_raw bands: 0=surficial  1=upper-Quat  2=mid-Quat  3=lower-Quat  4=bedrock
-HK_LAYER_BAND_MAP   = [1, 2, 3, 3, 4]
+# HK raster band number (1-based, matching the raster file) for each model layer
+# hk_raw bands: 1=Quat-1  2=Quat-2  3=Quat-3  4=fractured bedrock  5=deep bedrock
+HK_LAYER_BAND_MAP   = [1, 2, 3, 4, 5]
 
 
 # ---------------------------------------------------------------------------
