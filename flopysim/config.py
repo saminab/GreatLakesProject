@@ -141,7 +141,7 @@ os.makedirs(obs_out_dir, exist_ok=True)
 # nameInputMidQuat = bottom of middle Quaternary contact (Xu 2021)
 FRAC_BEDROCK_THK_M  = 5.0                  # m; fixed fractured-bedrock thickness
 MAX_DEPTH_M         = 600.0                # base of deep bedrock = -MAX_DEPTH_M m ASL (fixed absolute elevation)
-MIN_QUAT_SUBLAYER_M = 2.0                  # m; minimum thickness per Quaternary sub-layer
+MIN_QUAT_SUBLAYER_M = 1.0                  # m; minimum thickness per Quaternary sub-layer
 
 # HK raster band number (1-based, matching the raster file) for each model layer
 # hk_raw bands: 1=Quat-1  2=Quat-2  3=Quat-3  4=fractured bedrock  5=deep bedrock
