@@ -1144,6 +1144,7 @@ def build_drn_from_raster(
     min_thick=0.1,
     min_area_frac=0.01,
     elev_eps=0.01,
+    cond_cap=None,
 ):
     recs = []
     rows = []
@@ -1210,6 +1211,11 @@ def build_drn_from_raster(
 
         if not np.isfinite(cond) or cond <= 0:
             continue
+
+        # Apply hard cap to prevent ILU overflow in solver (high-K cells can
+        # produce conductances of 1e8+ m²/day which cause Fortran float overflow)
+        if cond_cap is not None:
+            cond = min(cond, float(cond_cap))
 
         rec = ((k, int(i), int(j)), elev, cond)
         recs.append(rec)
