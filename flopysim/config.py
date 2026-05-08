@@ -177,12 +177,17 @@ DRN_MIN_AREA_FRAC = 0.01                  # skip drain cells below this area fra
 DRN_COND_MULT    = 1.0                    # calibration multiplier on drain conductance
 DRN_ELEV_EPS     = 0.01                   # m; drain elevation offset below cell top
 DRN_DEPTH_M      = 0.5                    # m; stream drain stage below land surface
+DRN_COND_CAP     = 1e5                    # m²/day; hard cap on stream drain conductance
+#   Rationale: K × (1 km²) / DRN_K_DIVISOR can reach 1e8 for high-K cells,
+#   which causes ILU overflow in the IMS solver.  A 1 km cell with 10 m/day K
+#   and ~100 m of stream length has C ≈ K × stream_area / bed_thickness
+#   ≈ 10 × 1e4 / 0.5 ≈ 2e5 m²/day, so 1e5 is physically conservative.
 
 # Surface seepage drains (horizontal seepage faces)
 # Conductance: Csurf = K * cell_area * SURF_AREA_FRAC / TSOIL_M
 TSOIL_M           = 50.0                  # m; effective soil column — calibration parameter
 SURF_AREA_FRAC    = 0.001                 # fraction of cell area contributing to seepage
-SURF_COND_CAP     = 1e6                   # m²/day; hard cap on surface drain conductance
+SURF_COND_CAP     = 1e5                   # m²/day; hard cap on surface drain conductance
 SURF_ELEV_OFFSET  = 5.0                   # m; seepage drain sits this far below surface
 SURF_DRN_LAY      = 0                     # model layer index for surface drains (0 = top)
 MIN_RECHARGE_MDAY = 0.0                   # m/day; cells below this get weak drain only
