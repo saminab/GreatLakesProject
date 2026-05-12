@@ -12,8 +12,8 @@ import os
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Testing_8"        # used for MF6 package names and the sim folder
-nameModel_SS = "Testing_8_SS"    # steady-state spin-up model (heads become STRT for transient)
+nameModel    = "Testing_9"        # used for MF6 package names and the sim folder
+nameModel_SS = "Testing_9_SS"    # steady-state spin-up model (heads become STRT for transient)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -185,8 +185,15 @@ DRN_COND_CAP     = 1e5                    # m²/day; hard cap on stream drain co
 
 # Surface seepage drains (horizontal seepage faces)
 # Conductance: Csurf = K * cell_area * SURF_AREA_FRAC / TSOIL_M
+#
+# Calibration note (Testing_8 result):
+#   With SURF_AREA_FRAC=0.001 and TSOIL_M=50, Csurf ≈ 20 m²/day for K=1 m/day.
+#   Recharge of 0.64 mm/day over a 1 km² cell = 640 m³/day requires heads
+#   32 m above the drain to discharge — producing basin-wide artesian conditions.
+#   Increasing SURF_AREA_FRAC to 0.01 raises Csurf to 200 m²/day, bringing
+#   equilibrium heads to ~2 m below the surface for typical K cells.
 TSOIL_M           = 50.0                  # m; effective soil column — calibration parameter
-SURF_AREA_FRAC    = 0.001                 # fraction of cell area contributing to seepage
+SURF_AREA_FRAC    = 0.01                  # fraction of cell area contributing to seepage (was 0.001)
 SURF_COND_CAP     = 1e5                   # m²/day; hard cap on surface drain conductance
 SURF_ELEV_OFFSET  = 5.0                   # m; seepage drain sits this far below surface
 SURF_DRN_LAY      = 0                     # model layer index for surface drains (0 = top)
