@@ -12,8 +12,8 @@ import os
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Testing_9"        # used for MF6 package names and the sim folder
-nameModel_SS = "Testing_9_SS"    # steady-state spin-up model (heads become STRT for transient)
+nameModel    = "Testing_11"       # used for MF6 package names and the sim folder
+nameModel_SS = "Testing_11_SS"   # steady-state spin-up model (heads become STRT for transient)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -27,7 +27,7 @@ EPSG = 3174                    # Great Lakes Basin Albers projection
 # ---------------------------------------------------------------------------
 START_DATE = "2000-01-01"      # first stress period (monthly)
 END_DATE   = "2025-12-01"      # last stress period (inclusive)
-NPER_TEST  = None              # number of periods for a short test run; set None for full run
+NPER_TEST  = 36              # number of periods for a short test run; set None for full run
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +84,11 @@ OUT_STAGE_TABLE = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_La
 # ---------------------------------------------------------------------------
 NLDAS_ROOT_PATH  = r"D:\Users\abolmaal\Data\Downloaded\Climatedata\Gridded\NLDAS_NOAHVIC_M.2.0"
 NLDAS_VAR        = "Qsb"
+# Fraction of NLDAS Qsb applied as groundwater recharge.
+# Qsb = total subsurface runoff (shallow interflow + deep drainage combined).
+# Only the deep-drainage fraction reaches the water table; the rest becomes
+# baseflow at shallow depth.  Typical values: 0.3–0.6.
+RCH_MULT         = 0.65                   # calibration multiplier on recharge
 
 
 # ---------------------------------------------------------------------------
@@ -184,16 +189,14 @@ DRN_COND_CAP     = 1e5                    # m²/day; hard cap on stream drain co
 #   ≈ 10 × 1e4 / 0.5 ≈ 2e5 m²/day, so 1e5 is physically conservative.
 
 # Surface seepage drains (horizontal seepage faces)
-# Conductance: Csurf = K * cell_area * SURF_AREA_FRAC / TSOIL_M
-#
-# Calibration note (Testing_8 result):
-#   With SURF_AREA_FRAC=0.001 and TSOIL_M=50, Csurf ≈ 20 m²/day for K=1 m/day.
-#   Recharge of 0.64 mm/day over a 1 km² cell = 640 m³/day requires heads
-#   32 m above the drain to discharge — producing basin-wide artesian conditions.
-#   Increasing SURF_AREA_FRAC to 0.01 raises Csurf to 200 m²/day, bringing
-#   equilibrium heads to ~2 m below the surface for typical K cells.
-TSOIL_M           = 50.0                  # m; effective soil column — calibration parameter
-SURF_AREA_FRAC    = 0.01                  # fraction of cell area contributing to seepage (was 0.001)
+# Conductance: C = K * cell_area / Layer1_thickness   (Darcy through near-surface soil)
+#   K            = horizontal K of Layer 1 at each cell  [m/day]
+#   cell_area    = delr * delc = 1e6 m² at 1 km resolution
+#   Layer1_thick = top2d - botm3d[0]  (varies spatially)
+# SURF_AREA_FRAC and TSOIL_M are retained below for reference but are no
+# longer used in the conductance calculation (superseded by layer thickness).
+TSOIL_M           = 50.0                  # m; kept for reference — not used in conductance
+SURF_AREA_FRAC    = 0.01                  # kept for reference — not used in conductance
 SURF_COND_CAP     = 1e5                   # m²/day; hard cap on surface drain conductance
 SURF_ELEV_OFFSET  = 5.0                   # m; seepage drain sits this far below surface
 SURF_DRN_LAY      = 0                     # model layer index for surface drains (0 = top)
