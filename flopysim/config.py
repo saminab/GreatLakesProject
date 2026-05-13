@@ -12,8 +12,8 @@ import os
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Testing_13"       # used for MF6 package names and the sim folder
-nameModel_SS = "Testing_13_SS"   # steady-state spin-up model (heads become STRT for transient)
+nameModel    = "Testing_14"       # used for MF6 package names and the sim folder
+nameModel_SS = "Testing_14_SS"   # steady-state spin-up model (heads become STRT for transient)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -197,11 +197,13 @@ DRN_COND_CAP     = 1e5                    # m²/day; hard cap on stream drain co
 # longer used in the conductance calculation (superseded by layer thickness).
 TSOIL_M           = 50.0                  # m; kept for reference — not used in conductance
 SURF_AREA_FRAC    = 0.01                  # kept for reference — not used in conductance
-SURF_COND_CAP     = 1e3                   # m²/day; hard cap on surface drain conductance
-# Note: C = K * 1km² / thick easily reaches 1e6-1e8 m²/day.
-# The cap is the effective conductance for most cells and controls
-# solver stiffness — 1e3 m²/day gives head above drain ~ 0.4-1 m,
-# keeping water table ~4-5 m below surface without solver oscillation.
+SURF_COND_CAP     = 1e4                   # m²/day; hard cap on surface drain conductance
+# Physics check (1 km² cell, SURF_ELEV_OFFSET = 2 m, drain_elev = DEM - 2 m):
+#   Q_recharge_peak  ≈ 200 kg/m²/mo × 0.65 / 1000 / 30 × 1e6 ≈ 4 333 m³/day
+#   Equilibrium Δh   = Q / C = 4 333 / 10 000 = 0.43 m  → head = DEM - 1.57 m → DTW +1.6 m  ✓
+#   With C = 1e3:    Δh = 4.3 m  → head = DEM + 2.3 m  → ARTESIAN  ✗
+# Solver stability: outer_dvclose = 0.1 m; at mean recharge Δh ≈ 0.11 m (just above dvclose).
+# MODERATE complexity + 200 outer iterations handles the nonlinear drain switching.
 SURF_ELEV_OFFSET  = 2.0                   # m; seepage drain sits this far below surface
 SURF_DRN_LAY      = 0                     # model layer index for surface drains (0 = top)
 MIN_RECHARGE_MDAY = 0.0                   # m/day; cells below this get weak drain only
