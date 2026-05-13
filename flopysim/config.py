@@ -12,8 +12,8 @@ import os
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Testing_11"       # used for MF6 package names and the sim folder
-nameModel_SS = "Testing_11_SS"   # steady-state spin-up model (heads become STRT for transient)
+nameModel    = "Testing_12"       # used for MF6 package names and the sim folder
+nameModel_SS = "Testing_12_SS"   # steady-state spin-up model (heads become STRT for transient)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -197,7 +197,11 @@ DRN_COND_CAP     = 1e5                    # m²/day; hard cap on stream drain co
 # longer used in the conductance calculation (superseded by layer thickness).
 TSOIL_M           = 50.0                  # m; kept for reference — not used in conductance
 SURF_AREA_FRAC    = 0.01                  # kept for reference — not used in conductance
-SURF_COND_CAP     = 1e5                   # m²/day; hard cap on surface drain conductance
+SURF_COND_CAP     = 1e3                   # m²/day; hard cap on surface drain conductance
+# Note: C = K * 1km² / thick easily reaches 1e6-1e8 m²/day.
+# The cap is the effective conductance for most cells and controls
+# solver stiffness — 1e3 m²/day gives head above drain ~ 0.4-1 m,
+# keeping water table ~4-5 m below surface without solver oscillation.
 SURF_ELEV_OFFSET  = 5.0                   # m; seepage drain sits this far below surface
 SURF_DRN_LAY      = 0                     # model layer index for surface drains (0 = top)
 MIN_RECHARGE_MDAY = 0.0                   # m/day; cells below this get weak drain only
