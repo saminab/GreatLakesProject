@@ -12,8 +12,8 @@ import os
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Testing_12"       # used for MF6 package names and the sim folder
-nameModel_SS = "Testing_12_SS"   # steady-state spin-up model (heads become STRT for transient)
+nameModel    = "Testing_13"       # used for MF6 package names and the sim folder
+nameModel_SS = "Testing_13_SS"   # steady-state spin-up model (heads become STRT for transient)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -202,7 +202,7 @@ SURF_COND_CAP     = 1e3                   # m²/day; hard cap on surface drain c
 # The cap is the effective conductance for most cells and controls
 # solver stiffness — 1e3 m²/day gives head above drain ~ 0.4-1 m,
 # keeping water table ~4-5 m below surface without solver oscillation.
-SURF_ELEV_OFFSET  = 5.0                   # m; seepage drain sits this far below surface
+SURF_ELEV_OFFSET  = 2.0                   # m; seepage drain sits this far below surface
 SURF_DRN_LAY      = 0                     # model layer index for surface drains (0 = top)
 MIN_RECHARGE_MDAY = 0.0                   # m/day; cells below this get weak drain only
 SURF_COND_WEAK    = 0.1                   # m²/day; weak drain for low-recharge cells
