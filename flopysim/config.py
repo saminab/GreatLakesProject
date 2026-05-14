@@ -27,7 +27,7 @@ EPSG = 3174                    # Great Lakes Basin Albers projection
 # ---------------------------------------------------------------------------
 START_DATE = "2000-01-01"      # first stress period (monthly)
 END_DATE   = "2025-12-01"      # last stress period (inclusive)
-NPER_TEST  = 36              # number of periods for a short test run; set None for full run
+NPER_TEST  = None              # number of periods for a short test run; set None for full run
 
 
 # ---------------------------------------------------------------------------
