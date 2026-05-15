@@ -3,6 +3,7 @@
 Regional transient MODFLOW 6 groundwater model for the extended Great Lakes Basin, built with [FloPy](https://github.com/modflowpy/flopy). The model simulates monthly groundwater dynamics from January 2000 to December 2025 at 1 km resolution, covering approximately 904,570 active cells across the full basin.
 
 ![Study domain](Figures/Studydomain.jpeg)
+![Hydraulic conductivity](Figures/HK_comparison.png)
 
 ---
 
