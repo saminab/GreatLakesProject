@@ -12,8 +12,8 @@ import os
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Testing_14"       # used for MF6 package names and the sim folder
-nameModel_SS = "Testing_14_SS"   # steady-state spin-up model (heads become STRT for transient)
+nameModel    = "Testing_1"       # used for MF6 package names and the sim folder
+nameModel_SS = "Testing_1_SS"   # steady-state spin-up model (heads become STRT for transient)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -88,7 +88,7 @@ NLDAS_VAR        = "Qsb"
 # Qsb = total subsurface runoff (shallow interflow + deep drainage combined).
 # Only the deep-drainage fraction reaches the water table; the rest becomes
 # baseflow at shallow depth.  Typical values: 0.3–0.6.
-RCH_MULT         = 0.65                   # calibration multiplier on recharge
+RCH_MULT         = 0.60                  # calibration multiplier on recharge
 
 
 # ---------------------------------------------------------------------------
@@ -197,7 +197,7 @@ DRN_COND_CAP     = 1e5                    # m²/day; hard cap on stream drain co
 # longer used in the conductance calculation (superseded by layer thickness).
 TSOIL_M           = 50.0                  # m; kept for reference — not used in conductance
 SURF_AREA_FRAC    = 0.01                  # kept for reference — not used in conductance
-SURF_COND_CAP     = 1e4                   # m²/day; hard cap on surface drain conductance
+SURF_COND_CAP     = 3e4                   # m²/day; hard cap on surface drain conductance
 # Physics check (1 km² cell, SURF_ELEV_OFFSET = 2 m, drain_elev = DEM - 2 m):
 #   Q_recharge_peak  ≈ 200 kg/m²/mo × 0.65 / 1000 / 30 × 1e6 ≈ 4 333 m³/day
 #   Equilibrium Δh   = Q / C = 4 333 / 10 000 = 0.43 m  → head = DEM - 1.57 m → DTW +1.6 m  ✓
