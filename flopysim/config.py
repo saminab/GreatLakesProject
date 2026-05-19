@@ -12,8 +12,8 @@ import os
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Testing_1"       # used for MF6 package names and the sim folder
-nameModel_SS = "Testing_1_SS"   # steady-state spin-up model (heads become STRT for transient)
+nameModel    = "Testing_2"       # used for MF6 package names and the sim folder
+nameModel_SS = "Testing_2_SS"   # steady-state spin-up model (heads become STRT for transient)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -223,7 +223,10 @@ MIN_SAT_FRAC  = 0.30                      # fraction of layer thickness that mus
 # ---------------------------------------------------------------------------
 # HYDRAULIC PROPERTIES
 # ---------------------------------------------------------------------------
-KV_ANISOTROPY_RATIO = 10.0               # Kv = Kh / KV_ANISOTROPY_RATIO (all layers)
+# Calibration history:
+#   10.0 → Testing_1:  Layer 3 bias +4.7m, Layer 4 +5.6m, Layer 5 -7.8m (Kv too low)
+#    5.0 → Testing_2:  doubles Kv → should reduce Layers 3-4 buildup, feed Layer 5
+KV_ANISOTROPY_RATIO = 5.0                # Kv = Kh / KV_ANISOTROPY_RATIO (all layers)
 
 
 # ---------------------------------------------------------------------------
