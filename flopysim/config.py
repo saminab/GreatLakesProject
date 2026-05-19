@@ -6,6 +6,7 @@
 # from here — you never need to touch them directly.
 # =============================================================================
 import os
+from pathlib import Path
 
 
 # ---------------------------------------------------------------------------
@@ -101,7 +102,7 @@ WELL_LAYER      = "GLB_all_wells_2025_mi_update"
 # ---------------------------------------------------------------------------
 # FILE PATHS — FIGURES  (derived from nameModel; folder created automatically)
 # ---------------------------------------------------------------------------
-fig_dir          = os.path.join(FIGS_BASE_DIR, nameModel)
+fig_dir          = Path(os.path.join(FIGS_BASE_DIR, nameModel))
 out_fig_ts       = os.path.join(fig_dir, "depthtowatertable.png")
 out_fig_maps     = os.path.join(fig_dir, "depthtowater_maps_blue_classes.png")
 out_fig_final    = os.path.join(fig_dir, "depthtowater_final_blue_classes.png")
