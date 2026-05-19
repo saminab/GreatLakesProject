@@ -13,8 +13,8 @@ from pathlib import Path
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Testing_2"       # used for MF6 package names and the sim folder
-nameModel_SS = "Testing_2_SS"   # steady-state spin-up model (heads become STRT for transient)
+nameModel    = "Testing_3"       # used for MF6 package names and the sim folder
+nameModel_SS = "Testing_3_SS"   # reuse Testing_3 warm-up heads (RCH change, not Kv)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -89,7 +89,10 @@ NLDAS_VAR        = "Qsb"
 # Qsb = total subsurface runoff (shallow interflow + deep drainage combined).
 # Only the deep-drainage fraction reaches the water table; the rest becomes
 # baseflow at shallow depth.  Typical values: 0.3–0.6.
-RCH_MULT         = 0.60                  # calibration multiplier on recharge
+RCH_MULT         = 0.45                  # calibration multiplier on recharge
+#   Testing_1: 0.60 → Layer 3-4 bias +4.7/+5.6m, baseflow Sim/Obs 1.4-4.6x too high
+#   Testing_2: 0.60 + KV×2 → no change (Kv not the bottleneck)
+#   Testing_3: 0.45 → 25% less recharge → reduce layer bias AND baseflow overestimate
 
 
 # ---------------------------------------------------------------------------
@@ -225,9 +228,10 @@ MIN_SAT_FRAC  = 0.30                      # fraction of layer thickness that mus
 # HYDRAULIC PROPERTIES
 # ---------------------------------------------------------------------------
 # Calibration history:
-#   10.0 → Testing_1:  Layer 3 bias +4.7m, Layer 4 +5.6m, Layer 5 -7.8m (Kv too low)
-#    5.0 → Testing_2:  doubles Kv → should reduce Layers 3-4 buildup, feed Layer 5
-KV_ANISOTROPY_RATIO = 5.0                # Kv = Kh / KV_ANISOTROPY_RATIO (all layers)
+#   10.0 → Testing_1:  Layer 3 bias +4.7m, Layer 4 +5.6m, Layer 5 -7.8m
+#    5.0 → Testing_2:  KV×2 — identical results; Kv not the bottleneck for layer bias
+#    5.0 → Testing_3:  KV unchanged; RCH_MULT 0.60→0.45 to fix layer bias + baseflow
+KV_ANISOTROPY_RATIO = 10.0                # Kv = Kh / KV_ANISOTROPY_RATIO (all layers)
 
 
 # ---------------------------------------------------------------------------
