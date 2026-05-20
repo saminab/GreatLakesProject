@@ -116,7 +116,7 @@ out_fig_final    = os.path.join(fig_dir, "depthtowater_final_blue_classes.png")
 # ---------------------------------------------------------------------------
 obs_out_dir     = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Observations"
 compare_out_dir = os.path.join(MODEL_BASE_DIR, nameModel, "Observation_Comparison")
-out_obs_csv     = os.path.join(obs_out_dir, "GLB_well_observations_for_MODFLOW.csv")
+out_obs_csv     = os.path.join(fig_dir, "GLB_well_observations_for_MODFLOW.csv")
 out_compare_csv = os.path.join(fig_dir, "well_observed_vs_simulated_heads.csv")
 out_compare_fig = os.path.join(fig_dir, "observed_vs_simulated_heads.png")
 out_dtw_fig     = os.path.join(fig_dir, "observed_vs_simulated_dtw.png")
