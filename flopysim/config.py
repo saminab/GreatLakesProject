@@ -14,7 +14,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
 nameModel    = "Testing_3"       # used for MF6 package names and the sim folder
-nameModel_SS = "Testing_3_SS"   # reuse Testing_3 warm-up heads (RCH change, not Kv)
+nameModel_SS = "Testing_3_SS"   # fresh SS warm-up (RCH_MULT + DRN_DEPTH_M both changed)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -185,7 +185,11 @@ DRN_MIN_THICK    = 0.1                    # m; minimum cell thickness for conduc
 DRN_MIN_AREA_FRAC = 0.01                  # skip drain cells below this area fraction
 DRN_COND_MULT    = 1.0                    # calibration multiplier on drain conductance
 DRN_ELEV_EPS     = 0.01                   # m; drain elevation offset below cell top
-DRN_DEPTH_M      = 0.5                    # m; stream drain stage below land surface
+DRN_DEPTH_M      = 2.0                    # m; stream drain stage below land surface
+#   Testing_1/2/3 (0.5 m): drain pinned >50% of cells at 0.5 m DTW (median = 0.5 m flat)
+#   Testing_3 updated (2.0 m): allows water table up to 2 m below surface before draining
+#   Rationale: at 1 km resolution the cell-average DEM sits 1-3 m above the stream
+#   channel; 0.5 m was too shallow, acting as a basin-wide ceiling on the water table
 DRN_COND_CAP     = 1e5                    # m²/day; hard cap on stream drain conductance
 #   Rationale: K × (1 km²) / DRN_K_DIVISOR can reach 1e8 for high-K cells,
 #   which causes ILU overflow in the IMS solver.  A 1 km cell with 10 m/day K
@@ -231,7 +235,7 @@ MIN_SAT_FRAC  = 0.30                      # fraction of layer thickness that mus
 #   10.0 → Testing_1:  Layer 3 bias +4.7m, Layer 4 +5.6m, Layer 5 -7.8m
 #    5.0 → Testing_2:  KV×2 — identical results; Kv not the bottleneck for layer bias
 #    5.0 → Testing_3:  KV unchanged; RCH_MULT 0.60→0.45 to fix layer bias + baseflow
-KV_ANISOTROPY_RATIO = 10.0                # Kv = Kh / KV_ANISOTROPY_RATIO (all layers)
+KV_ANISOTROPY_RATIO = 10.0                 # Kv = Kh / KV_ANISOTROPY_RATIO (all layers)
 
 
 # ---------------------------------------------------------------------------
@@ -246,6 +250,31 @@ N_SHOW_MAX   = 6                          # max stress-period maps per figure
 # UNIT CONVERSION
 # ---------------------------------------------------------------------------
 FT_TO_M = 0.3048                          # feet to metres
+
+
+# ---------------------------------------------------------------------------
+# PEST++ CALIBRATION OVERRIDE  (optional — see calibration/ folder)
+# ---------------------------------------------------------------------------
+# During a PEST++ run, forward_run.py sets the environment variable
+# GLB_PEST_PARAMS to the path of a two-column "name value" file written from
+# the template (calibration/pest_params.dat).  When that variable is set and
+# the file exists, the calibration knobs defined above are overridden with the
+# trial values PEST++ is testing.  When the variable is unset (every normal
+# notebook run), nothing changes and the values above are used as written.
+_pest_file = os.environ.get("GLB_PEST_PARAMS")
+if _pest_file and os.path.exists(_pest_file):
+    _pest_applied = {}
+    with open(_pest_file) as _pf:
+        for _line in _pf:
+            _line = _line.strip()
+            if not _line or _line.startswith("#"):
+                continue
+            _parts = _line.split()
+            if len(_parts) >= 2:
+                _name, _val = _parts[0], float(_parts[1])
+                globals()[_name] = _val          # override the knob in this module
+                _pest_applied[_name] = _val
+    print(f"[config] PEST++ override from {_pest_file}: {_pest_applied}")
 
 
 # ---------------------------------------------------------------------------
