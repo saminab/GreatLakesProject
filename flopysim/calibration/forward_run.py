@@ -3,23 +3,41 @@ forward_run.py  --  One PEST++ forward run (model command).
 
 PEST++ calls this once per trial parameter set.  Steps:
 
-  1. Tell config.py to read the trial parameters that PEST++ just wrote into
+  1. Tell config.py to read the trial parameters PEST++ just wrote into
      calibration/pest_params.dat  (via the GLB_PEST_PARAMS env var).
-  2. Run the MODFLOW 6 build + solve by executing Modeflow6_SImulation.ipynb
-     headless (nbconvert).  The notebook does `from config import *`, so it
-     automatically uses the overridden calibration knobs.
-  3. Read the head file and compute the temporal-mean simulated head at each
-     observation cell -- streaming one stress period at a time so RAM stays low.
-  4. Write calibration/sim_heads.dat  (one "obsname value" line per target),
+  2. Run MODFLOW 6 by executing Modeflow6_SImulation.ipynb headless.  The
+     notebook does `from config import *`, so it uses the overridden knobs.
+  3. Read the head file and extract the simulated head at each observation
+     cell -- streaming one stress period at a time so RAM stays low.
+  4. Write calibration/sim_heads.dat (one "obsname value" line per target),
      which the PEST instruction file (.ins) reads back.
 
-PEST++ runs this from the calibration/ folder.  All paths are resolved
-relative to this file, so the working directory does not matter.
+------------------------------------------------------------------------------
+TWO MODES (set SS_ONLY below):
+
+  SS_ONLY = True   (recommended, ~2x faster)
+      Run ONLY the warm-up spin-up cells of the notebook (everything before the
+      transient model build) and compare against the warm-up EQUILIBRIUM heads
+      in {nameModel_SS}.hds.  Static water levels are undated and the head
+      comparison uses the long-term mean, which the warm-up equilibrium already
+      represents -- so this is the physically appropriate, cheaper target.
+      The transient (312-period) run is SKIPPED during calibration.
+
+  SS_ONLY = False  (full transient)
+      Run the whole notebook and compare against the temporal-mean head over all
+      312 stress periods in {nameModel}.hds (identical statistic to Cell 12 of
+      the output notebook).  Use this to VALIDATE the final calibrated set.
+------------------------------------------------------------------------------
 """
 import os
 import sys
 import time
+import json
 import subprocess
+
+# --- mode switch -------------------------------------------------------------
+SS_ONLY = True          # True = warm-up equilibrium only (fast);  False = full transient
+# -----------------------------------------------------------------------------
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FLOPYSIM_DIR = os.path.dirname(HERE)
@@ -28,18 +46,60 @@ PARAM_FILE = os.path.join(HERE, "pest_params.dat")
 OBS_FILE   = os.path.join(HERE, "obs_wells.csv")
 SIM_OUT    = os.path.join(HERE, "sim_heads.dat")
 NOTEBOOK   = os.path.join(FLOPYSIM_DIR, "Modeflow6_SImulation.ipynb")
-
-# Where nbconvert drops the executed copy (kept for debugging each run).
+TRIMMED_NB = os.path.join(HERE, "_calib_run.ipynb")         # generated each SS-only run
 EXECUTED_NB = os.path.join(HERE, "Modeflow6_SImulation_lastrun.ipynb")
 
-# 24-hour ceiling per forward run (a full 312-period solve can take hours).
-RUN_TIMEOUT_S = 86400
+RUN_TIMEOUT_S = 86400        # 24-hour ceiling per forward run
+
+# Marker identifying the cell that BUILDS the full transient model.  For SS-only
+# we keep every cell BEFORE this one (build inputs + warm-up + clean heads).
+TRANSIENT_MARKER = "sim_name=nameSim"
+
+
+def _write_ss_only_notebook():
+    """Write a trimmed notebook = all cells before the transient build cell."""
+    import nbformat
+    nb = nbformat.read(NOTEBOOK, as_version=4)
+    cut = None
+    for idx, c in enumerate(nb.cells):
+        if c.cell_type == "code" and TRANSIENT_MARKER in "".join(c.source):
+            cut = idx
+            break
+    if cut is None:
+        raise RuntimeError(
+            f"Could not find transient build cell (marker '{TRANSIENT_MARKER}'). "
+            f"Set SS_ONLY=False or update the marker.")
+    nb.cells = nb.cells[:cut]
+    nbformat.write(nb, TRIMMED_NB)
+    print(f"[forward_run] SS-only: keeping {cut} cells (skip transient from cell {cut}).",
+          flush=True)
+    return TRIMMED_NB
+
+
+def _clear_ss_outputs():
+    """Force a fresh warm-up: delete old SS heads so the notebook rebuilds them.
+
+    The notebook reuses {nameModel_SS}.hds if it exists -- but during calibration
+    the parameters change every run, so a stale warm-up must NOT be reused.
+    """
+    sys.path.insert(0, FLOPYSIM_DIR)
+    os.environ["GLB_PEST_PARAMS"] = PARAM_FILE
+    from config import nameModel_SS, MODEL_BASE_DIR
+    ss_hds = os.path.join(MODEL_BASE_DIR, nameModel_SS, f"{nameModel_SS}.hds")
+    if os.path.exists(ss_hds):
+        os.remove(ss_hds)
+        print(f"[forward_run] removed stale warm-up heads: {ss_hds}", flush=True)
 
 
 def run_model():
-    """Execute the simulation notebook with the trial parameters active."""
     env = os.environ.copy()
     env["GLB_PEST_PARAMS"] = PARAM_FILE          # <-- config.py picks this up
+
+    if SS_ONLY:
+        _clear_ss_outputs()
+        target_nb = _write_ss_only_notebook()
+    else:
+        target_nb = NOTEBOOK
 
     cmd = [
         sys.executable, "-m", "jupyter", "nbconvert",
@@ -47,29 +107,34 @@ def run_model():
         f"--ExecutePreprocessor.timeout={RUN_TIMEOUT_S}",
         "--ExecutePreprocessor.kernel_name=python3",
         "--output", EXECUTED_NB,
-        NOTEBOOK,
+        target_nb,
     ]
-    print("[forward_run] launching MODFLOW build+solve ...", flush=True)
+    mode = "warm-up equilibrium (SS-only)" if SS_ONLY else "full transient"
+    print(f"[forward_run] launching MODFLOW [{mode}] ...", flush=True)
     t0 = time.time()
-    # cwd = flopysim dir so the notebook's `from config import *` resolves.
-    res = subprocess.run(cmd, cwd=FLOPYSIM_DIR, env=env)
+    res = subprocess.run(cmd, cwd=FLOPYSIM_DIR, env=env)   # cwd so `from config import *` resolves
     if res.returncode != 0:
         raise RuntimeError(f"Simulation notebook failed (exit {res.returncode})")
     print(f"[forward_run] solve finished in {(time.time()-t0)/60:.1f} min", flush=True)
 
 
 def extract_sim_heads():
-    """Temporal-mean simulated head at each target cell, streamed period-by-period."""
+    """Simulated head at each target cell; HDRY -> water-table fallback."""
     import numpy as np
     import pandas as pd
     import flopy.utils.binaryfile as bf
 
-    # config gives us sim_ws + nameModel for the head file location.
     os.chdir(FLOPYSIM_DIR)
     sys.path.insert(0, FLOPYSIM_DIR)
     os.environ["GLB_PEST_PARAMS"] = PARAM_FILE
-    from config import nameModel, MODEL_BASE_DIR
-    sim_ws = os.path.join(MODEL_BASE_DIR, nameModel)
+    from config import nameModel, nameModel_SS, MODEL_BASE_DIR
+
+    if SS_ONLY:
+        sim_ws   = os.path.join(MODEL_BASE_DIR, nameModel_SS)
+        hds_path = os.path.join(sim_ws, f"{nameModel_SS}.hds")
+    else:
+        sim_ws   = os.path.join(MODEL_BASE_DIR, nameModel)
+        hds_path = os.path.join(sim_ws, f"{nameModel}.hds")
 
     obs = pd.read_csv(OBS_FILE)
     k = obs["layer"].to_numpy(np.int64)
@@ -77,22 +142,26 @@ def extract_sim_heads():
     j = obs["col"].to_numpy(np.int64)
     n = len(obs)
 
-    hds_path = os.path.join(sim_ws, f"{nameModel}.hds")
     print(f"[forward_run] reading heads: {hds_path}", flush=True)
-    hds   = bf.HeadFile(hds_path)
-    times = hds.get_times()
+    hds = bf.HeadFile(hds_path)
 
     HDRY = 1e20
-    ssum = np.zeros(n, dtype=np.float64)        # sum of valid assigned-layer heads
-    scnt = np.zeros(n, dtype=np.int64)          # count of valid periods
-    wt_sum = np.zeros(n, dtype=np.float64)      # sum of water-table heads (fallback)
+    ssum = np.zeros(n, dtype=np.float64)         # sum of valid assigned-layer heads
+    scnt = np.zeros(n, dtype=np.int64)
+    wt_sum = np.zeros(n, dtype=np.float64)       # water-table fallback
     wt_cnt = np.zeros(n, dtype=np.int64)
 
+    if SS_ONLY:
+        # single equilibrium snapshot = last timestep
+        times = [hds.get_times()[-1]]
+    else:
+        # temporal mean over all stress periods (matches output Cell 12)
+        times = hds.get_times()
+
     for t in times:
-        h = hds.get_data(totim=t)               # (nlay, nrow, ncol) for this period
+        h = hds.get_data(totim=t)                # (nlay, nrow, ncol)
         nlay = h.shape[0]
 
-        # assigned-layer head
         v = h[k, i, j]
         good = np.abs(v) < HDRY
         ssum[good] += v[good]
@@ -112,18 +181,16 @@ def extract_sim_heads():
         wt_sum[wgood] += wt[wgood]
         wt_cnt[wgood] += 1
 
-    # mean at assigned layer; fall back to water-table mean; else obs (no info)
     sim = np.full(n, np.nan, dtype=np.float64)
     has = scnt > 0
     sim[has] = ssum[has] / scnt[has]
     miss = ~has & (wt_cnt > 0)
     sim[miss] = wt_sum[miss] / wt_cnt[miss]
-    still_missing = np.isnan(sim)
-    if still_missing.any():
-        # neutral fallback: observed value -> zero residual (no information)
-        sim[still_missing] = obs["obs_head_m"].to_numpy()[still_missing]
-        print(f"[forward_run] WARNING: {int(still_missing.sum())} dry targets "
-              f"set to observed value (zero residual).", flush=True)
+    still = np.isnan(sim)
+    if still.any():
+        sim[still] = obs["obs_head_m"].to_numpy()[still]   # neutral -> zero residual
+        print(f"[forward_run] WARNING: {int(still.sum())} dry targets set to observed "
+              f"value (zero residual).", flush=True)
 
     with open(SIM_OUT, "w") as f:
         for name, val in zip(obs["obsname"], sim):
