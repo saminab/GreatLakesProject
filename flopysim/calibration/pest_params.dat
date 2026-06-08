@@ -1,0 +1,8 @@
+# Calibration parameters read by config.py when GLB_PEST_PARAMS points here.
+# Format: NAME  VALUE   (whitespace separated; config uses the first two tokens)
+# These starting values match Testing_3 in config.py.
+RCH_MULT             0.45
+KV_ANISOTROPY_RATIO  10.0
+GHB_COND_MULT        0.5
+DRN_COND_MULT        1.0
+DRN_DEPTH_M          2.0
