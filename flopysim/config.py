@@ -5,6 +5,7 @@
 # calibration values.  All other Python files (settings.py, Inputs.py) import
 # from here — you never need to touch them directly.
 # =============================================================================
+# tgis is in Hydrocloud 5 
 import os
 from pathlib import Path
 
@@ -34,41 +35,41 @@ NPER_TEST  = None              # number of periods for a short test run; set Non
 # ---------------------------------------------------------------------------
 # FILE PATHS — EXECUTABLES AND WORKSPACE
 # ---------------------------------------------------------------------------
-MF6_EXE_DIR      = r"D:\Users\abolmaal\modelling\Modflow\helper"
-MODEL_BASE_DIR    = r"D:\Users\abolmaal\modelling\Modflow"     # sim_ws = MODEL_BASE_DIR / nameModel
-FIGS_BASE_DIR     = r"D:\Users\abolmaal\modelling\Figs"        # fig_dir = FIGS_BASE_DIR / nameModel
+MF6_EXE_DIR      = r"F:\Users\abolmaal\Modelling\Modeflow\helper\mf6"
+MODEL_BASE_DIR    = r"F:\Users\abolmaal\Modelling\GL_modeloutouts"     # sim_ws = MODEL_BASE_DIR / nameModel
+FIGS_BASE_DIR     = r"F:\Users\abolmaal\Modelling\GL_modeloutouts\Figures"        # fig_dir = FIGS_BASE_DIR / nameModel
 
 
 # ---------------------------------------------------------------------------
 # FILE PATHS — GRID AND DOMAIN
 # ---------------------------------------------------------------------------
-GRID_DIR_PATH    = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\GRID_3174"
-ALIGNED_DIR_PATH = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\ALIGNED_3174"
+GRID_DIR_PATH    = r"S:\Users\Samin\modelling\GW_model\model_Layers\GRID_3174"
+ALIGNED_DIR_PATH = r"S:\Users\Samin\modelling\GW_model\model_Layers\ALIGNED_3174"
 
-boundary_shp     = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Ibound\extended_Bdry_final_GLB_Albers_exported.shp"
-IBOUND           = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Ibound\Idomain_mask_30m.tif"
+boundary_shp     = r"S:\Users\Samin\modelling\GW_model\model_Layers\Ibound\extended_Bdry_final_GLB_Albers_exported.shp"
+IBOUND           = r"S:\Users\Samin\modelling\GW_model\model_Layers\Ibound\Idomain_mask_30m.tif"
 
 
 # ---------------------------------------------------------------------------
 # FILE PATHS — INPUT RASTERS
 # ---------------------------------------------------------------------------
-nameInputTop        = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\DEM\DEM_extended20kmbdr_1000m.tif"
-nameInputLayBot     = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Bottom\modelbottom.tif"
-nameInputMidQuat    = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\quaternary\mid_quat_contact_1000m.tif"
-nameInputHorizCond  = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\HK\HK_5band_1000m.tif"
-nameInputStrt       = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Wells\starting_heads_clamped_1000m.tif"
-nameInputDrainElev  = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Drains\drain_elevation.tif"
-nameInputBathy      = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\GreatLakes_bathymetry\GreatLakes_bathymetry_contours.tif"
+nameInputTop        = r"S:\Users\Samin\modelling\GW_model\model_Layers\DEM\DEM_extended20kmbdr_1000m.tif"
+nameInputLayBot     = r"S:\Users\Samin\modelling\GW_model\model_Layers\Bottom\modelbottom.tif"
+nameInputMidQuat    = r"S:\Users\Samin\modelling\GW_model\model_Layers\quaternary\mid_quat_contact_1000m.tif"
+nameInputHorizCond  = r"S:\Users\Samin\modelling\GW_model\model_Layers\HK\HK_5band_1000m.tif"
+nameInputStrt       = r"S:\Users\Samin\modelling\GW_model\model_Layers\Wells\starting_heads_clamped_1000m.tif"
+nameInputDrainElev  = r"S:\Users\Samin\modelling\GW_model\model_Layers\Drains\drain_elevation.tif"
+nameInputBathy      = r"S:\Users\Samin\modelling\GW_model\model_Layers\GreatLakes_bathymetry\GreatLakes_bathymetry_contours.tif"
 
 
 # ---------------------------------------------------------------------------
 # FILE PATHS — VECTOR INPUTS
 # ---------------------------------------------------------------------------
-pathLakePoly        = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes.shp"
-pathInputGHBFeature = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Lakes\GreatLakes_GHB_fullLake.shp"
-pathInputConstHead  = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Costantheads\CHD_cells_points_dem.shp"
+pathLakePoly        = r"S:\Users\Samin\modelling\GW_model\model_Layers\Lakes\GreatLakes.shp"
+pathInputGHBFeature = r"S:\Users\Samin\modelling\GW_model\model_Layers\Lakes\GreatLakes_GHB_fullLake.shp"
+pathInputConstHead  = r"S:\Users\Samin\modelling\GW_model\model_Layers\Costantheads\CHD_cells_points_dem.shp"
 fieldInputConstHeadElev = "head"
-gdb_path            = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\NHD\streams_tmp.gdb"
+gdb_path            = r"S:\Users\Samin\modelling\GW_model\model_Layers\NHD\streams_tmp.gdb"
 layer_name          = "streams_3174"
 lake_name_field     = "lake_name"
 
@@ -76,14 +77,14 @@ lake_name_field     = "lake_name"
 # ---------------------------------------------------------------------------
 # FILE PATHS — GHB TABLES
 # ---------------------------------------------------------------------------
-OUT_GHB_TABLE   = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\GHBs\GreatLakes_GHB_cells.csv"
-OUT_STAGE_TABLE = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\GHBs\GreatLakes_stage_monthly_for_model.csv"
+OUT_GHB_TABLE   = r"S:\Users\Samin\modelling\GW_model\model_Layers\GHBs\GreatLakes_GHB_cells.csv"
+OUT_STAGE_TABLE = r"S:\Users\Samin\modelling\GW_model\model_Layers\GHBs\GreatLakes_stage_monthly_for_model.csv"
 
 
 # ---------------------------------------------------------------------------
 # FILE PATHS — CLIMATE (NLDAS)
 # ---------------------------------------------------------------------------
-NLDAS_ROOT_PATH  = r"D:\Users\abolmaal\Data\Downloaded\Climatedata\Gridded\NLDAS_NOAHVIC_M.2.0"
+NLDAS_ROOT_PATH  = r"S:\Users\Samin\modelling\GW_model\model_Layers\Climatedata\Gridded\NLDAS_NOAHVIC_M.2.0"
 NLDAS_VAR        = "Qsb"
 # Fraction of NLDAS Qsb applied as groundwater recharge.
 # Qsb = total subsurface runoff (shallow interflow + deep drainage combined).
@@ -114,10 +115,10 @@ out_fig_final    = os.path.join(fig_dir, "depthtowater_final_blue_classes.png")
 # ---------------------------------------------------------------------------
 # FILE PATHS — OUTPUT TABLES  (derived from nameModel; folder created automatically)
 # ---------------------------------------------------------------------------
-obs_out_dir     = r"D:\Users\abolmaal\modelling\Modflow\Prep\GreatLakes\model_Layers\Observations"
+obs_out_dir     = r"F:\Users\abolmaal\Modelling\GL_modeloutouts\Observations"
 compare_out_dir = os.path.join(MODEL_BASE_DIR, nameModel, "Observation_Comparison")
-out_obs_csv     = os.path.join(fig_dir, "GLB_well_observations_for_MODFLOW.csv")
-out_compare_csv = os.path.join(fig_dir, "well_observed_vs_simulated_heads.csv")
+out_obs_csv     = os.path.join(obs_out_dir, "GLB_well_observations_for_MODFLOW.csv")
+out_compare_csv = os.path.join(obs_out_dir, "well_observed_vs_simulated_heads.csv")
 out_compare_fig = os.path.join(fig_dir, "observed_vs_simulated_heads.png")
 out_dtw_fig     = os.path.join(fig_dir, "observed_vs_simulated_dtw.png")
 
@@ -185,7 +186,8 @@ DRN_MIN_THICK    = 0.1                    # m; minimum cell thickness for conduc
 DRN_MIN_AREA_FRAC = 0.01                  # skip drain cells below this area fraction
 DRN_COND_MULT    = 1.0                    # calibration multiplier on drain conductance
 DRN_ELEV_EPS     = 0.01                   # m; drain elevation offset below cell top
-DRN_DEPTH_M      = 0.5                    # m; stream drain stage below land surface
+DRN_DEPTH_M      = 2.0                    # m; stream drain stage below land surface ; the drain depth as basin wide ceiling more than 50 % of the cell 
+                                          # were pinned at 0.5 m DTW so the annuan median was flat at 0.5 m DTW 
 DRN_COND_CAP     = 1e5                    # m²/day; hard cap on stream drain conductance
 #   Rationale: K × (1 km²) / DRN_K_DIVISOR can reach 1e8 for high-K cells,
 #   which causes ILU overflow in the IMS solver.  A 1 km cell with 10 m/day K
