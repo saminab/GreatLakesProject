@@ -13,8 +13,8 @@ from pathlib import Path
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Testing_3"       # used for MF6 package names and the sim folder
-nameModel_SS = "Testing_3_SS"   # fresh SS warm-up (RCH_MULT + DRN_DEPTH_M both changed)
+nameModel    = "Calibration_1"       # used for MF6 package names and the sim folder
+nameModel_SS = "Calibration_1_SS"   # fresh SS warm-up (RCH_MULT + DRN_DEPTH_M both changed)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
