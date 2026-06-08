@@ -92,13 +92,33 @@ for cfg_name, pst_name, init, lo, hi, tr in PARAMS:
     pdata.loc[m, "scale"]    = 1.0
     pdata.loc[m, "offset"]   = 0.0
 
-# -- observations: value = observed head, group by layer, uniform weight --
+# -- observations: value = observed head, grouped by layer --
+# WEIGHT_MODE:
+#   "layer_balanced" : every layer group contributes equally to phi, so the
+#                      deep bedrock (Layer 5, few wells, worst fit) is not
+#                      drowned out by the shallow layers (many wells).
+#                      weight_g = sqrt( (N_total / n_groups) / n_group )
+#   "uniform"        : weight = 1 for every well (objective ~ total RMSE,
+#                      dominated by the most-sampled shallow layers).
+WEIGHT_MODE = "layer_balanced"
+
 odata = pst.observation_data
 odata = odata.set_index("obsnme", drop=False)
 obs_idx = obs.set_index("obsname")
+
 odata.loc[obs_idx.index, "obsval"] = obs_idx["obs_head_m"].astype(float).values
-odata.loc[obs_idx.index, "weight"] = 1.0
 odata.loc[obs_idx.index, "obgnme"] = [f"hd_lay{int(l)}" for l in obs_idx["layer"].values]
+
+if WEIGHT_MODE == "layer_balanced":
+    counts = obs.groupby("layer").size()
+    n_total, n_groups = len(obs), len(counts)
+    w_by_layer = {lay: float(np.sqrt((n_total / n_groups) / cnt))
+                  for lay, cnt in counts.items()}
+    odata.loc[obs_idx.index, "weight"] = [w_by_layer[int(l)] for l in obs_idx["layer"].values]
+    print("layer weights:", {int(k): round(v, 3) for k, v in w_by_layer.items()})
+else:
+    odata.loc[obs_idx.index, "weight"] = 1.0
+
 pst.observation_data = odata.reset_index(drop=True)
 
 # ---------------------------------------------------------------------------
