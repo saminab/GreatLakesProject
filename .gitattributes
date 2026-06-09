@@ -1,0 +1,27 @@
+# Normalize all text files to LF inside the repository.
+# Working-tree endings follow the platform on checkout (CRLF on Windows via
+# core.autocrlf), so the repo stays consistent regardless of each user's config.
+* text=auto
+
+# Windows scripts must always be CRLF (cmd.exe / PowerShell)
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# Unix shell scripts must always be LF
+*.sh    text eol=lf
+
+# Binary / data files: never normalize, never diff as text
+*.exe   binary
+*.dll   binary
+*.tif   binary
+*.tiff  binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.npy   binary
+*.npz   binary
+*.shp   binary
+*.dbf   binary
+*.shx   binary
+*.gpkg  binary
