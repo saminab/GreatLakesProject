@@ -41,3 +41,6 @@ desktop.ini
 
 # Claude worktrees (internal)
 .claude/worktrees/
+
+# PEST++ executables (fetched by calibration/get_pestpp.py — re-downloadable, not tracked)
+pestpp-*.exe
