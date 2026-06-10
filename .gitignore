@@ -44,3 +44,12 @@ desktop.ini
 
 # PEST++ executables (fetched by calibration/get_pestpp.py — re-downloadable, not tracked)
 pestpp-*.exe
+
+# PEST++ calibration run artifacts - regenerated every run
+_calib_run.ipynb
+Modeflow6_SImulation_lastrun.ipynb
+calib.*
+sim_heads.dat
+sim_heads.dat.ins
+pest_params.dat.tpl
+run.info
