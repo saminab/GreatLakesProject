@@ -84,7 +84,9 @@ for c in ["SWL", "WELL_DEPTH", "SCREEN_FRM", "SCREEN_TO"]:
 wells = wells.dropna(subset=["SWL", "geometry"]).copy()
 print("After dropping missing SWL:", len(wells))
 
-wells = wells[wells.geometry.within(boundary.geometry.union_all())].copy()
+_bnd = boundary.geometry
+_bnd_union = _bnd.union_all() if hasattr(_bnd, "union_all") else _bnd.unary_union
+wells = wells[wells.geometry.within(_bnd_union)].copy()
 print("Inside model boundary:", len(wells))
 
 # feet -> metres, plausibility filter
@@ -168,12 +170,15 @@ else:
     wells["well_id"] = [f"WELL_{i:06d}" for i in range(len(wells))]
 
 if MAX_OBS is not None and len(wells) > MAX_OBS:
-    # proportional sample within each layer so all layers stay represented
+    # proportional sample within each layer so all layers stay represented.
+    # Iterate groups rather than groupby.apply -- on pandas >=2.2 apply drops
+    # the grouping column ("layer"), which breaks the output selection below.
     frac = MAX_OBS / len(wells)
-    wells = (wells.groupby("layer", group_keys=False)
-                  .apply(lambda g: g.sample(max(1, int(round(len(g) * frac))),
-                                            random_state=RANDOM_SEED))
-                  .reset_index(drop=True))
+    parts = []
+    for _lay, _g in wells.groupby("layer"):
+        _n = max(1, int(round(len(_g) * frac)))
+        parts.append(_g.sample(min(_n, len(_g)), random_state=RANDOM_SEED))
+    wells = pd.concat(parts).reset_index(drop=True)
     print(f"Subsampled to {len(wells)} wells (cap {MAX_OBS}).")
 
 # ---------------------------------------------------------------------------

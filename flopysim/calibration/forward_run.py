@@ -51,6 +51,11 @@ EXECUTED_NB = os.path.join(HERE, "Modeflow6_SImulation_lastrun.ipynb")
 
 RUN_TIMEOUT_S = 86400        # 24-hour ceiling per forward run
 
+# A kernel that points at THIS interpreter (the env that launched forward_run,
+# i.e. whatever run_forward.bat invokes). Registering it on the fly guarantees
+# the notebook executes in the same env -- no "wrong python3 kernel" mismatch.
+KERNEL_NAME = "glb_calib"
+
 # Marker identifying the cell that BUILDS the full transient model.  For SS-only
 # we keep every cell BEFORE this one (build inputs + warm-up + clean heads).
 TRANSIENT_MARKER = "sim_name=nameSim"
@@ -70,6 +75,16 @@ def _write_ss_only_notebook():
             f"Could not find transient build cell (marker '{TRANSIENT_MARKER}'). "
             f"Set SS_ONLY=False or update the marker.")
     nb.cells = nb.cells[:cut]
+    # The trimmed notebook lives in the calibration subfolder, so the kernel's
+    # working dir would be here -- but the notebook's bare imports
+    # (`from Imports import *`) need flopysim/ on sys.path and as cwd.
+    # Prepend a setup cell that fixes both, regardless of where the file sits.
+    setup_src = (
+        "import os, sys\n"
+        f"sys.path.insert(0, r'{FLOPYSIM_DIR}')\n"
+        f"os.chdir(r'{FLOPYSIM_DIR}')\n"
+    )
+    nb.cells.insert(0, nbformat.v4.new_code_cell(setup_src))
     nbformat.write(nb, TRIMMED_NB)
     print(f"[forward_run] SS-only: keeping {cut} cells (skip transient from cell {cut}).",
           flush=True)
@@ -101,11 +116,18 @@ def run_model():
     else:
         target_nb = NOTEBOOK
 
+    # Register (idempotent) a kernel that runs THIS interpreter, so nbconvert
+    # executes the notebook in the same env as forward_run (has pyogrio, flopy…).
+    subprocess.run(
+        [sys.executable, "-m", "ipykernel", "install", "--user",
+         "--name", KERNEL_NAME, "--display-name", "GLB calibration"],
+        env=env)
+
     cmd = [
         sys.executable, "-m", "jupyter", "nbconvert",
         "--to", "notebook", "--execute",
         f"--ExecutePreprocessor.timeout={RUN_TIMEOUT_S}",
-        "--ExecutePreprocessor.kernel_name=python3",
+        f"--ExecutePreprocessor.kernel_name={KERNEL_NAME}",
         "--output", EXECUTED_NB,
         target_nb,
     ]
