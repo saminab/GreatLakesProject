@@ -55,6 +55,7 @@ RUN_TIMEOUT_S = 86400        # 24-hour ceiling per forward run
 # i.e. whatever run_forward.bat invokes). Registering it on the fly guarantees
 # the notebook executes in the same env -- no "wrong python3 kernel" mismatch.
 KERNEL_NAME = "glb_calib"
+
 # Marker identifying the cell that BUILDS the full transient model.  For SS-only
 # we keep every cell BEFORE this one (build inputs + warm-up + clean heads).
 TRANSIENT_MARKER = "sim_name=nameSim"
@@ -73,7 +74,7 @@ def _write_ss_only_notebook():
         raise RuntimeError(
             f"Could not find transient build cell (marker '{TRANSIENT_MARKER}'). "
             f"Set SS_ONLY=False or update the marker.")
-        nb.cells = nb.cells[:cut]
+    nb.cells = nb.cells[:cut]
     # The trimmed notebook lives in the calibration subfolder, so the kernel's
     # working dir would be here -- but the notebook's bare imports
     # (`from Imports import *`) need flopysim/ on sys.path and as cwd.
@@ -84,9 +85,25 @@ def _write_ss_only_notebook():
         f"os.chdir(r'{FLOPYSIM_DIR}')\n"
     )
     nb.cells.insert(0, nbformat.v4.new_code_cell(setup_src))
+
+    # SAFETY (fails in milliseconds, not after a 3-hour transient + full disk):
+    # the kept cells MUST contain the warm-up run and MUST NOT contain the
+    # transient run.  The transient is `sim.run_simulation()`; the warm-up is
+    # `sim_ss.run_simulation()` -- a different token -- so this is unambiguous.
+    kept = "\n".join("".join(c.source) for c in nb.cells if c.cell_type == "code")
+    if "sim.run_simulation()" in kept:
+        raise RuntimeError(
+            "SS-only trim FAILED: the transient run ('sim.run_simulation()') is "
+            "still present in the kept cells. Aborting before the 312-period solve. "
+            "Check TRANSIENT_MARKER against the notebook layout.")
+    if "sim_ss.run_simulation" not in kept:
+        raise RuntimeError(
+            "SS-only trim looks wrong: the warm-up run ('sim_ss.run_simulation') "
+            "was not found in the kept cells.")
+
     nbformat.write(nb, TRIMMED_NB)
-    print(f"[forward_run] SS-only: keeping {cut} cells (skip transient from cell {cut}).",
-          flush=True)
+    print(f"[forward_run] SS-only: keeping {cut} cells (skip transient from cell {cut}); "
+          f"warm-up present, transient excluded.", flush=True)
     return TRIMMED_NB
 
 
@@ -115,7 +132,7 @@ def run_model():
     else:
         target_nb = NOTEBOOK
 
-        # Register (idempotent) a kernel that runs THIS interpreter, so nbconvert
+    # Register (idempotent) a kernel that runs THIS interpreter, so nbconvert
     # executes the notebook in the same env as forward_run (has pyogrio, flopy…).
     subprocess.run(
         [sys.executable, "-m", "ipykernel", "install", "--user",

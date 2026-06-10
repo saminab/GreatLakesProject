@@ -19,8 +19,7 @@ or directly with the climate interpreter once its DLL paths are on PATH.
 """
 import os
 import sys
-from osgeo import gdal
-gdal.PushErrorHandler("CPLQuietErrorHandler")
+
 # Make `from config import *` resolve: the model code lives one level up.
 HERE = os.path.dirname(os.path.abspath(__file__))
 FLOPYSIM_DIR = os.path.dirname(HERE)
@@ -42,7 +41,7 @@ from config import (
 # SETTINGS
 # ---------------------------------------------------------------------------
 # Existing model run whose grid defines the cell mapping (any completed build).
-SRC_MODEL    = "Testing_3"                      # e.g. "Testing_3"
+SRC_MODEL    = nameModel                      # e.g. "Testing_3"
 SRC_SIM_WS   = os.path.join(MODEL_BASE_DIR, SRC_MODEL)
 TARGET_CRS   = "EPSG:3174"
 MAX_OBS      = 5000                            # cap; stratified by layer (None = keep all)
