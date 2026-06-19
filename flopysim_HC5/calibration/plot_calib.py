@@ -41,8 +41,13 @@ def _find(*names):
 rei = _find("calib.rei", "calib.*.rei")
 if rei:
     import pyemu
-    res = pyemu.pst_utils.read_resfile(rei).reset_index()
-    res = res.rename(columns={"index": "obsname", "name": "obsname"})
+    res = pyemu.pst_utils.read_resfile(rei)
+    res.columns = [c.lower() for c in res.columns]
+    if "name" not in res.columns:                 # obs name is the index, not a column
+        res = res.reset_index()
+        res.columns = [c.lower() for c in res.columns]
+        res = res.rename(columns={res.columns[0]: "name"})
+    res = res.rename(columns={"name": "obsname"})
     res["obsname"] = res["obsname"].astype(str)
     df = obs.merge(res[["obsname", "measured", "modelled"]], on="obsname")
     df["sim_head_m"] = df["modelled"].astype(float)
