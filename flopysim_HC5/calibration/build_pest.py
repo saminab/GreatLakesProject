@@ -29,15 +29,25 @@ PST_FILE   = os.path.join(HERE, "calib.pst")
 
 # ---------------------------------------------------------------------------
 # Parameter definitions: (config name, pest name, init, lower, upper, transform)
-# Bounds chosen around the documented Testing_1..3 calibration history.
 # ---------------------------------------------------------------------------
+# CALIBRATION_2 — per-layer horizontal-K multipliers.
+#   Calibration_1 (the 5 global BC knobs RCH/KV/GHB/DRN/DRN_DEPTH) improved phi
+#   by only 0.6%: those scalars were already near-optimal and the remaining
+#   ~13 m misfit is SPATIAL/structural (worst in L1 surficial & L5 deep bedrock).
+#   Calibration_2 frees one Kh multiplier per layer instead.  config.py applies
+#   each to that layer's Kh band (Kv follows via the fixed anisotropy ratio), so
+#   the model can re-balance K between layers.  The global BC knobs stay frozen
+#   at their config.py values, and recharge stays fixed so the per-layer K is
+#   identifiable (heads alone cannot separate recharge from K).
+#   Bounds: 0.1-10x (one order of magnitude either way), log-transformed because
+#   a multiplier is naturally a log quantity.  init 1.0 = unchanged raster.
 PARAMS = [
-    # config var            pest name    init   lower   upper  transform
-    ("RCH_MULT",            "rch_mult",   0.45,  0.20,   0.90,  "log"),
-    ("KV_ANISOTROPY_RATIO", "kv_aniso",  10.0,   1.0,  100.0,  "log"),
-    ("GHB_COND_MULT",       "ghb_mult",   0.5,   0.05,   5.0,  "log"),
-    ("DRN_COND_MULT",       "drn_mult",   1.0,   0.10,  10.0,  "log"),
-    ("DRN_DEPTH_M",         "drn_depth",  2.0,   0.50,  10.0,  "none"),
+    # config var      pest name   init   lower   upper  transform
+    ("HK_MULT_L1",    "kh_l1",     1.0,   0.10,  10.0,  "log"),   # surficial Quaternary
+    ("HK_MULT_L2",    "kh_l2",     1.0,   0.10,  10.0,  "log"),   # middle Quaternary
+    ("HK_MULT_L3",    "kh_l3",     1.0,   0.10,  10.0,  "log"),   # lower Quaternary
+    ("HK_MULT_L4",    "kh_l4",     1.0,   0.10,  10.0,  "log"),   # fractured bedrock
+    ("HK_MULT_L5",    "kh_l5",     1.0,   0.10,  10.0,  "log"),   # deep bedrock
 ]
 
 # ---------------------------------------------------------------------------

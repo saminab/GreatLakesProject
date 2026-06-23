@@ -1,17 +1,40 @@
 # PEST++ calibration of the Great Lakes MODFLOW 6 model
 
-Automated inverse calibration of five parameters against static water-level
-observations from the well database. Built with **pyEMU + PEST++**.
+Automated inverse calibration against static water-level observations from the
+well database. Built with **pyEMU + PEST++**.
 
 ## What gets calibrated
 
-| config.py knob        | PEST name  | start | bounds       | transform |
-|-----------------------|-----------|-------|--------------|-----------|
-| `RCH_MULT`            | rch_mult  | 0.45  | 0.20 – 0.90  | log       |
-| `KV_ANISOTROPY_RATIO` | kv_aniso  | 10.0  | 1 – 100      | log       |
-| `GHB_COND_MULT`       | ghb_mult  | 0.5   | 0.05 – 5     | log       |
-| `DRN_COND_MULT`       | drn_mult  | 1.0   | 0.1 – 10     | log       |
-| `DRN_DEPTH_M`         | drn_depth | 2.0   | 0.5 – 10 m   | linear    |
+**Calibration_2 (current)** — one **horizontal-K multiplier per layer**. Each
+scales that layer's Kh raster band; Kv follows automatically (`k33 = Kh /
+KV_ANISOTROPY_RATIO` is computed *after* the multiplier), so only the magnitude
+of K moves and the anisotropy ratio is preserved. `config.py` applies them via
+the `HK_LAYER_MULT` list; `build_pest.py` defines them as the PEST parameters.
+
+| config.py knob | PEST name | start | bounds      | transform | layer                |
+|----------------|-----------|-------|-------------|-----------|----------------------|
+| `HK_MULT_L1`   | kh_l1     | 1.0   | 0.1 – 10    | log       | surficial Quaternary |
+| `HK_MULT_L2`   | kh_l2     | 1.0   | 0.1 – 10    | log       | middle Quaternary    |
+| `HK_MULT_L3`   | kh_l3     | 1.0   | 0.1 – 10    | log       | lower Quaternary     |
+| `HK_MULT_L4`   | kh_l4     | 1.0   | 0.1 – 10    | log       | fractured bedrock    |
+| `HK_MULT_L5`   | kh_l5     | 1.0   | 0.1 – 10    | log       | deep bedrock         |
+
+The five **global BC knobs** (`RCH_MULT`, `KV_ANISOTROPY_RATIO`, `GHB_COND_MULT`,
+`DRN_COND_MULT`, `DRN_DEPTH_M`) stay **frozen** at their `config.py` values.
+Recharge in particular is held fixed so the per-layer K stays identifiable —
+heads alone cannot separate recharge from K (the recharge/K trade-off).
+
+> **Why this is Calibration_2:** Calibration_1 calibrated those five global knobs
+> and improved phi by only 0.6% — they were already near-optimal, and the
+> remaining ~13 m misfit is *spatial/structural* (worst in L1 and L5). Per-layer
+> K multipliers are the minimal distributed parameterization that targets it. If
+> per-layer K is exhausted, the next step (Calibration_3) is *zoned/pilot-point*
+> K within layers.
+
+> **Before launching:** to start from the Calibration_1 optimum rather than the
+> Testing_3 defaults, copy the calibrated global-knob values from Calibration_1's
+> `calib.par` into `config.py` first. (Cal_1 moved them <1%, so this is a minor
+> refinement, not a requirement.)
 
 **Targets:** observed groundwater head (`land_elev - SWL`) at each well,
 mapped to its `(layer, row, col)` exactly as in Cell 12 of
@@ -123,3 +146,5 @@ production runs.
 it works with an ensemble instead of a finite-difference Jacobian. The same
 `calib.pst` works; just run `pestpp-ies.exe calib.pst` after adding the relevant
 `++ies_*` options to `pestpp_options` in `build_pest.py`.
+
+! [Workflow](./pest_calibration_iteration_loop.svg)
