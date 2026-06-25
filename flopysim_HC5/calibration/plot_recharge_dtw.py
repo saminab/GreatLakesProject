@@ -28,6 +28,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 import flopy
 import flopy.utils.binaryfile as bf
 
@@ -76,9 +77,16 @@ for k in range(nlay):
     fill = (idomain[k] > 0) & (np.abs(head[k]) < HDRY) & np.isnan(wt)
     wt[fill] = head[k][fill]
 
-land = idomain.max(axis=0) > 0
+land = idomain.max(axis=0) > 0          # cell column active in at least one layer
 dtw = top - wt
 dtw[~land] = np.nan
+
+# classify the blank cells: truly inactive vs active-but-dry (no saturated layer)
+inactive = ~land
+dry_active = land & np.isnan(wt)        # active, but every layer dry -> no water table
+print(f"cells: active {int(land.sum()):,} | inactive {int(inactive.sum()):,} | "
+      f"active-but-DRY (no water table) {int(dry_active.sum()):,} "
+      f"({100 * dry_active.sum() / max(1, land.sum()):.1f}% of active)")
 
 # ---------------------------------------------------------------------------
 # mean annual recharge from the saved rch_cache (already includes RCH_MULT)
@@ -125,11 +133,17 @@ cb0.set_label("recharge (mm/yr)")
 d_lo, d_hi = np.nanpercentile(dtw, [2, 98])
 im1 = axes[1].imshow(np.ma.masked_invalid(dtw), cmap="viridis_r",
                      vmin=max(0, d_lo), vmax=d_hi)
-axes[1].set_title("Depth to water table")
+# overlay active-but-dry cells in red so they are not confused with inactive ones
+axes[1].imshow(np.ma.masked_where(~dry_active, np.ones_like(dtw)),
+               cmap=ListedColormap(["#e24b4a"]), vmin=0, vmax=1)
+axes[1].set_title(f"Depth to water table  "
+                  f"(red = active but dry: {int(dry_active.sum()):,} cells)")
 cb1 = fig.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
 cb1.set_label("depth to water table (m)   (deeper = darker)")
 
+# gray background so genuinely inactive cells read as 'outside domain', not missing
 for ax in axes:
+    ax.set_facecolor("0.82")
     ax.set_xlabel("column"); ax.set_ylabel("row")
     ax.set_aspect("equal")
 
