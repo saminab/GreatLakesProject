@@ -48,7 +48,11 @@ print(f"output dir      : {OUT_DIR}")
 # ---------------------------------------------------------------------------
 # load grid + heads
 # ---------------------------------------------------------------------------
-sim = flopy.mf6.MFSimulation.load(sim_ws=SIM_WS, verbosity_level=0)
+# load ONLY the DIS package (we just need top + idomain) -- loading the full
+# simulation parses every package incl. the huge DRN/GHB cell lists, which can
+# take many minutes for a model this size.
+sim = flopy.mf6.MFSimulation.load(sim_ws=SIM_WS, verbosity_level=0,
+                                  load_only=["dis"])
 gwf = sim.get_model(sim.model_names[0])
 
 top = np.array(gwf.dis.top.array, dtype=float)               # (nrow, ncol)
