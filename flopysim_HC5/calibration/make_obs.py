@@ -33,15 +33,18 @@ import pyogrio
 import flopy
 
 from config import (
-    nameModel, MODEL_BASE_DIR, wells_gdb_path, WELL_LAYER,
+    nameModel, nameModel_SS, MODEL_BASE_DIR, wells_gdb_path, WELL_LAYER,
     boundary_shp, FT_TO_M,
 )
 
 # ---------------------------------------------------------------------------
 # SETTINGS
 # ---------------------------------------------------------------------------
-# Existing model run whose grid defines the cell mapping (any completed build).
-SRC_MODEL    = nameModel                      # e.g. "Testing_3"
+# Grid that defines the well -> (layer,row,col) mapping.  Use the SS (warm-up)
+# model, because SS_ONLY calibration extracts heads from nameModel_SS -- the obs
+# must be mapped on the SAME grid the simulated heads come from.  Its geometry is
+# identical to the transient build, and it is rebuilt cheaply (no transient solve).
+SRC_MODEL    = nameModel_SS                   # e.g. "Calibration_1_SS"
 SRC_SIM_WS   = os.path.join(MODEL_BASE_DIR, SRC_MODEL)
 TARGET_CRS   = "EPSG:3174"
 MAX_OBS      = 5000                            # cap; stratified by layer (None = keep all)
