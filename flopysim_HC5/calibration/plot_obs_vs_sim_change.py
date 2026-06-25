@@ -112,16 +112,15 @@ fig, axes = plt.subplots(1, ncols, figsize=(6.0 * ncols, 5.6), dpi=160)
 axes = np.atleast_1d(axes)
 
 
-def scatter(ax, df, title):
+def scatter(ax, df, title, lim):
     o = df["measured"].astype(float).to_numpy()
     s = df["modelled"].astype(float).to_numpy()
-    for grp, (lab, col) in LAYER_STYLE.items():
-        m = df["group"].astype(str).to_numpy() == grp
-        if m.any():
-            ax.scatter(o[m], s[m], s=6, alpha=0.35, c=col, label=lab, edgecolors="none")
-    ax.plot([lo, hi], [lo, hi], "r--", lw=1.2)
+    r = s - o                                   # residual: + = sim too high
+    sc = ax.scatter(o, s, c=r, s=8, alpha=0.75, cmap="RdBu_r",
+                    vmin=-lim, vmax=lim, edgecolors="none")
+    ax.plot([lo, hi], [lo, hi], "k--", lw=1.0)
     rmse, bias = stats(o, s)
-    phi = float(np.sum((df["weight"].astype(float) * (s - o)) ** 2))
+    phi = float(np.sum((df["weight"].astype(float) * r) ** 2))
     ax.set(xlim=(lo, hi), ylim=(lo, hi), xlabel="observed head (m)",
            ylabel="simulated head (m)", title=title)
     ax.set_aspect("equal")
@@ -129,12 +128,21 @@ def scatter(ax, df, title):
             f"phi = {phi:,.0f}", transform=ax.transAxes, va="top", fontsize=9,
             bbox=dict(fc="white", ec="#888780", alpha=0.85))
     ax.grid(alpha=0.25)
+    return sc
 
 
-scatter(axes[0], b, f"Before — {lbl_b}")
+# shared symmetric residual color scale across both panels (so colors are comparable)
+res_all = np.abs(np.concatenate([
+    (b["modelled"].astype(float) - b["measured"].astype(float)).to_numpy(),
+    (a["modelled"].astype(float) - a["measured"].astype(float)).to_numpy()]))
+lim = float(np.percentile(res_all, 97))
+
+sc = scatter(axes[0], b, f"Before — {lbl_b}", lim)
 if not same:
-    scatter(axes[1], a, f"After — {lbl_a}")
-axes[0].legend(loc="lower right", fontsize=8, framealpha=0.9, markerscale=2)
+    scatter(axes[1], a, f"After — {lbl_a}", lim)
+cb = fig.colorbar(sc, ax=axes[1] if not same else axes[0], fraction=0.046, pad=0.04)
+cb.set_label("residual: simulated − observed head (m)\n"
+             "(red = model too high, blue = too low, white = on target)", fontsize=9)
 
 # per-layer RMSE before vs after
 if not same:
