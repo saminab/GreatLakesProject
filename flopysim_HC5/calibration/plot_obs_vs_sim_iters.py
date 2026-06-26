@@ -118,9 +118,10 @@ for ax, (it, d, par) in zip(axes, sets):
     ax.set_aspect("equal")
     txt = f"RMSE = {rmse:.2f} m\nphi = {phi:,.0f}"
     if par:
-        # show up to 3 parameters compactly
-        keys = list(par)[:3]
-        txt += "\n" + "  ".join(f"{k}={par[k]:.2g}" for k in keys)
+        # show ALL parameters, two per line
+        items = [f"{k}={par[k]:.3g}" for k in par]
+        for i in range(0, len(items), 2):
+            txt += "\n" + "   ".join(items[i:i + 2])
     ax.text(0.04, 0.96, txt, transform=ax.transAxes, va="top", fontsize=8.5,
             bbox=dict(fc="white", ec="#888780", alpha=0.85))
     ax.grid(alpha=0.25)
