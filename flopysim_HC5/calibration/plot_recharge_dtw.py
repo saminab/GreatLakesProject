@@ -28,7 +28,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import ListedColormap, LogNorm
 import flopy
 import flopy.utils.binaryfile as bf
 
@@ -130,16 +130,20 @@ axes[0].set_title("Mean annual recharge")
 cb0 = fig.colorbar(im0, ax=axes[0], fraction=0.046, pad=0.04)
 cb0.set_label("recharge (mm/yr)")
 
-d_lo, d_hi = np.nanpercentile(dtw, [2, 98])
-im1 = axes[1].imshow(np.ma.masked_invalid(dtw), cmap="viridis_r",
-                     vmin=max(0, d_lo), vmax=d_hi)
+# DTW on a LOG scale, green -> blue.  Log needs positive values, so artesian /
+# at-surface cells (DTW <= 0) are dropped from the log display.
+dtw_pos = np.where(np.isfinite(dtw) & (dtw > 0), dtw, np.nan)
+d_lo = max(0.1, float(np.nanpercentile(dtw_pos, 2)))
+d_hi = float(np.nanpercentile(dtw_pos, 98))
+im1 = axes[1].imshow(np.ma.masked_invalid(dtw_pos), cmap="GnBu",
+                     norm=LogNorm(vmin=d_lo, vmax=d_hi))
 # overlay active-but-dry cells in red so they are not confused with inactive ones
 axes[1].imshow(np.ma.masked_where(~dry_active, np.ones_like(dtw)),
                cmap=ListedColormap(["#e24b4a"]), vmin=0, vmax=1)
 axes[1].set_title(f"Depth to water table  "
                   f"(red = active but dry: {int(dry_active.sum()):,} cells)")
 cb1 = fig.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
-cb1.set_label("depth to water table (m)   (deeper = darker)")
+cb1.set_label("depth to water table  (m, log scale)   green = shallow, blue = deep")
 
 # gray background so genuinely inactive cells read as 'outside domain', not missing
 for ax in axes:
