@@ -30,24 +30,20 @@ PST_FILE   = os.path.join(HERE, "calib.pst")
 # ---------------------------------------------------------------------------
 # Parameter definitions: (config name, pest name, init, lower, upper, transform)
 # ---------------------------------------------------------------------------
-# CALIBRATION_2 — per-layer horizontal-K multipliers.
+# CALIBRATION_2 — a single GLOBAL horizontal-K multiplier.
 #   Calibration_1 (the 5 global BC knobs RCH/KV/GHB/DRN/DRN_DEPTH) improved phi
-#   by only 0.6%: those scalars were already near-optimal and the remaining
-#   ~13 m misfit is SPATIAL/structural (worst in L1 surficial & L5 deep bedrock).
-#   Calibration_2 frees one Kh multiplier per layer instead.  config.py applies
-#   each to that layer's Kh band (Kv follows via the fixed anisotropy ratio), so
-#   the model can re-balance K between layers.  The global BC knobs stay frozen
-#   at their config.py values, and recharge stays fixed so the per-layer K is
-#   identifiable (heads alone cannot separate recharge from K).
-#   Bounds: 0.1-10x (one order of magnitude either way), log-transformed because
-#   a multiplier is naturally a log quantity.  init 1.0 = unchanged raster.
+#   by only 0.6% and -- importantly -- never tuned Kh MAGNITUDE (it only moved the
+#   anisotropy ratio, which changes Kv, not Kh).  So a single basin-wide Kh
+#   multiplier is genuinely new freedom and the parsimonious first step.  config.py
+#   applies HK_MULT to every layer's Kh band (Kv follows via the fixed anisotropy
+#   ratio).  The BC knobs stay frozen at their Cal_1 values and recharge stays
+#   fixed, so the Kh multiplier is identifiable (heads can't separate recharge
+#   from K, but with recharge pinned, K alone is constrained).
+#   Bounds: 0.1-10x (one order of magnitude either way), log-transformed.
+#   (To go DISTRIBUTED later, add the per-layer HK_MULT_L1..L5 / kh_l1..l5 rows.)
 PARAMS = [
-    # config var      pest name   init   lower   upper  transform
-    ("HK_MULT_L1",    "kh_l1",     1.0,   0.10,  10.0,  "log"),   # surficial Quaternary
-    ("HK_MULT_L2",    "kh_l2",     1.0,   0.10,  10.0,  "log"),   # middle Quaternary
-    ("HK_MULT_L3",    "kh_l3",     1.0,   0.10,  10.0,  "log"),   # lower Quaternary
-    ("HK_MULT_L4",    "kh_l4",     1.0,   0.10,  10.0,  "log"),   # fractured bedrock
-    ("HK_MULT_L5",    "kh_l5",     1.0,   0.10,  10.0,  "log"),   # deep bedrock
+    # config var   pest name   init   lower   upper  transform
+    ("HK_MULT",    "kh_mult",   1.0,   0.10,  10.0,  "log"),   # single global Kh multiplier
 ]
 
 # ---------------------------------------------------------------------------

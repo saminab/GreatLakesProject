@@ -237,18 +237,22 @@ MIN_SAT_FRAC  = 0.30                      # fraction of layer thickness that mus
 #    5.0 → Testing_3:  KV unchanged; RCH_MULT 0.60→0.45 to fix layer bias + baseflow
 KV_ANISOTROPY_RATIO = 10.0                 # Kv = Kh / KV_ANISOTROPY_RATIO (all layers)
 
-# Calibration_2: per-layer horizontal-K multipliers.  Each scales that layer's
-# Kh raster band; Kv follows automatically because k33 = hk3d / KV_ANISOTROPY_RATIO
-# is computed AFTER the multiplier is applied (so the anisotropy ratio is kept
-# fixed and only the magnitude of K moves).  1.0 = unchanged from the raster.
-# These are the free parameters for Calibration_2 (PEST names kh_l1 .. kh_l5);
-# the global BC knobs above are frozen at their Calibration_1 values, and
-# recharge stays fixed so the per-layer K stays identifiable (recharge/K trade-off).
-HK_MULT_L1 = 1.0                           # surficial Quaternary  (worst fit in Cal_1)
-HK_MULT_L2 = 1.0                           # middle Quaternary
-HK_MULT_L3 = 1.0                           # lower Quaternary
-HK_MULT_L4 = 1.0                           # fractured bedrock
-HK_MULT_L5 = 1.0                           # deep bedrock          (worst fit in Cal_1)
+# Calibration_2: horizontal-K multipliers.  These scale each layer's Kh raster
+# band; Kv follows automatically because k33 = hk3d / KV_ANISOTROPY_RATIO is
+# computed AFTER the multiplier (anisotropy ratio fixed, only K magnitude moves).
+# 1.0 = unchanged from the raster.  Recharge is frozen so K stays identifiable
+# (recharge/K trade-off).  Cal_1 never tuned Kh magnitude -- only the anisotropy
+# ratio (which moves Kv, not Kh) -- so this is genuinely new freedom.
+#   HK_MULT       : a single GLOBAL Kh multiplier (all layers) -- the Calibration_2
+#                   parameter (PEST name kh_mult).
+#   HK_MULT_L1..5 : optional PER-LAYER multipliers (default 1.0), kept for a later
+#                   distributed calibration. Effective per-layer = HK_MULT * HK_MULT_Lk.
+HK_MULT    = 1.0                            # single global Kh multiplier (Calibration_2)
+HK_MULT_L1 = 1.0                            # surficial Quaternary
+HK_MULT_L2 = 1.0                            # middle Quaternary
+HK_MULT_L3 = 1.0                            # lower Quaternary
+HK_MULT_L4 = 1.0                            # fractured bedrock
+HK_MULT_L5 = 1.0                            # deep bedrock
 
 
 # ---------------------------------------------------------------------------
@@ -290,10 +294,12 @@ if _pest_file and os.path.exists(_pest_file):
     print(f"[config] PEST++ override from {_pest_file}: {_pest_applied}")
 
 # Assemble the per-layer Kh multiplier list AFTER the PEST override block above,
-# so it reflects whatever HK_MULT_L* values were applied this run (PEST writes
-# the individual scalars; the simulation notebook consumes the list).  Order
-# matches HK_LAYER_BAND_MAP / the model layers 1..5.
-HK_LAYER_MULT = [HK_MULT_L1, HK_MULT_L2, HK_MULT_L3, HK_MULT_L4, HK_MULT_L5]
+# so it reflects whatever HK_MULT* values were applied this run (PEST writes the
+# scalars; the simulation notebook consumes the list).  Effective multiplier for
+# each layer = global HK_MULT * that layer's HK_MULT_Lk.  With the per-layer knobs
+# at 1.0 (default), this is simply the single global HK_MULT everywhere.
+HK_LAYER_MULT = [HK_MULT * HK_MULT_L1, HK_MULT * HK_MULT_L2, HK_MULT * HK_MULT_L3,
+                 HK_MULT * HK_MULT_L4, HK_MULT * HK_MULT_L5]
 
 
 # ---------------------------------------------------------------------------

@@ -5,31 +5,29 @@ well database. Built with **pyEMU + PEST++**.
 
 ## What gets calibrated
 
-**Calibration_2 (current)** — one **horizontal-K multiplier per layer**. Each
-scales that layer's Kh raster band; Kv follows automatically (`k33 = Kh /
-KV_ANISOTROPY_RATIO` is computed *after* the multiplier), so only the magnitude
-of K moves and the anisotropy ratio is preserved. `config.py` applies them via
-the `HK_LAYER_MULT` list; `build_pest.py` defines them as the PEST parameters.
+**Calibration_2 (current)** — a single **global horizontal-K multiplier**. It
+scales every layer's Kh raster band uniformly; Kv follows automatically (`k33 =
+Kh / KV_ANISOTROPY_RATIO` is computed *after* the multiplier), so only the
+magnitude of K moves and the anisotropy ratio is preserved. `config.py` applies
+it via `HK_MULT` (assembled into the `HK_LAYER_MULT` list the notebook reads);
+`build_pest.py` defines it as the single PEST parameter.
 
-| config.py knob | PEST name | start | bounds      | transform | layer                |
-|----------------|-----------|-------|-------------|-----------|----------------------|
-| `HK_MULT_L1`   | kh_l1     | 1.0   | 0.1 – 10    | log       | surficial Quaternary |
-| `HK_MULT_L2`   | kh_l2     | 1.0   | 0.1 – 10    | log       | middle Quaternary    |
-| `HK_MULT_L3`   | kh_l3     | 1.0   | 0.1 – 10    | log       | lower Quaternary     |
-| `HK_MULT_L4`   | kh_l4     | 1.0   | 0.1 – 10    | log       | fractured bedrock    |
-| `HK_MULT_L5`   | kh_l5     | 1.0   | 0.1 – 10    | log       | deep bedrock         |
+| config.py knob | PEST name | start | bounds   | transform | scope                 |
+|----------------|-----------|-------|----------|-----------|-----------------------|
+| `HK_MULT`      | kh_mult   | 1.0   | 0.1 – 10 | log       | all layers (global Kh)|
 
 The five **global BC knobs** (`RCH_MULT`, `KV_ANISOTROPY_RATIO`, `GHB_COND_MULT`,
 `DRN_COND_MULT`, `DRN_DEPTH_M`) stay **frozen** at their `config.py` values.
-Recharge in particular is held fixed so the per-layer K stays identifiable —
-heads alone cannot separate recharge from K (the recharge/K trade-off).
+Recharge in particular is held fixed so Kh stays identifiable — heads alone
+cannot separate recharge from K (the recharge/K trade-off).
 
-> **Why this is Calibration_2:** Calibration_1 calibrated those five global knobs
-> and improved phi by only 0.6% — they were already near-optimal, and the
-> remaining ~13 m misfit is *spatial/structural* (worst in L1 and L5). Per-layer
-> K multipliers are the minimal distributed parameterization that targets it. If
-> per-layer K is exhausted, the next step (Calibration_3) is *zoned/pilot-point*
-> K within layers.
+> **Why this is Calibration_2:** Calibration_1's five global knobs improved phi by
+> only 0.6% and, crucially, **never tuned Kh magnitude** — they only moved the
+> *anisotropy ratio* (which changes Kv, not Kh). So a single basin-wide Kh
+> multiplier is genuinely new freedom and the parsimonious next step (1 parameter
+> ≈ 3-4 runs/iteration). If a global Kh isn't enough, go **distributed**: add the
+> per-layer `HK_MULT_L1..L5` / `kh_l1..l5` rows (kept in `config.py`/`build_pest.py`
+> for exactly this), then *zoned/pilot-point* K as a later step.
 
 > **Before launching:** to start from the Calibration_1 optimum rather than the
 > Testing_3 defaults, copy the calibrated global-knob values from Calibration_1's
