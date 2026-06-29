@@ -44,15 +44,22 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # first non-directory arg = pestpp basename (default "calib"); a directory arg
 # (or the default Figures/<nameModel>) is the output location.
 _args = sys.argv[1:]
-BASE = next((a for a in _args if not os.path.isdir(a)), "calib")
+def _is_dir_arg(a):
+    # a directory argument either already exists or looks like a path
+    return (os.sep in a) or (os.altsep is not None and os.altsep in a) or os.path.isdir(a)
+_dir_args  = [a for a in _args if _is_dir_arg(a)]
+_base_args = [a for a in _args if not _is_dir_arg(a)]
+BASE = _base_args[0] if _base_args else "calib"
 try:
     sys.path.insert(0, os.path.dirname(HERE))
     from config import MODEL_BASE_DIR, nameModel
     _default_out = os.path.join(MODEL_BASE_DIR, "Figures", nameModel)
-except Exception:
+except Exception as _e:
+    print(f"[warn] could not import config ({_e}); defaulting output to the script folder.")
     _default_out = HERE
-OUT_DIR = next((a for a in _args if os.path.isdir(a)), _default_out)
+OUT_DIR = _dir_args[0] if _dir_args else _default_out
 os.makedirs(OUT_DIR, exist_ok=True)
+print(f"output dir: {OUT_DIR}")
 
 
 def _path(ext):
