@@ -161,31 +161,47 @@ def run_model():
     else:
         target_nb = _write_full_notebook()
 
-    # Register the kernel with the conda env's ACTIVATION variables baked into the
-    # kernelspec, so the kernel starts already "activated": CONDA_PREFIX set (this
-    # triggers the env python's own DLL-dir init at startup) plus Library\bin on
-    # PATH and PROJ_LIB/GDAL_DATA.  Baking it into the kernelspec is what finally
-    # makes PROJ load -- an in-cell os.add_dll_directory runs too late for some
-    # dependency chains, and the kernel does not inherit the shell's activation.
+    # Register the kernel, then write the conda env's ACTIVATION variables straight
+    # into its kernel.json "env" block.  ipykernel's --env flag is not reliably
+    # honored (the kernel still came up un-activated, PROJ_LIB=None), but jupyter
+    # ALWAYS merges kernel.json "env" into the kernel's environment -- so this is
+    # what finally makes PROJ load: CONDA_PREFIX (triggers the env python's own
+    # DLL-dir init) + Library\bin on PATH + PROJ/GDAL data dirs.
+    subprocess.run(
+        [sys.executable, "-m", "ipykernel", "install", "--user",
+         "--name", KERNEL_NAME, "--display-name", "GLB calibration"],
+        env=env)
+
     _envroot = os.path.dirname(sys.executable)
-    _kdirs = [os.path.join(_envroot, p) for p in
-              ("", "Library\\bin", "Library\\mingw-w64\\bin", "Library\\usr\\bin",
-               "Scripts", "DLLs")]
+    _lib = os.path.join(_envroot, "Library")
+    _kdirs = [_envroot, os.path.join(_lib, "bin"),
+              os.path.join(_lib, "mingw-w64", "bin"),
+              os.path.join(_lib, "usr", "bin"),
+              os.path.join(_envroot, "Scripts"),
+              os.path.join(_envroot, "DLLs")]
     _kenv = {
         "CONDA_PREFIX": _envroot,
-        "PROJ_LIB":  os.path.join(_envroot, "Library", "share", "proj"),
-        "GDAL_DATA": os.path.join(_envroot, "Library", "share", "gdal"),
+        "PROJ_LIB":  os.path.join(_lib, "share", "proj"),
+        "PROJ_DATA": os.path.join(_lib, "share", "proj"),
+        "GDAL_DATA": os.path.join(_lib, "share", "gdal"),
         "PATH": os.pathsep.join(_kdirs) + os.pathsep + os.environ.get("PATH", ""),
     }
-    _install = [sys.executable, "-m", "ipykernel", "install", "--user",
-                "--name", KERNEL_NAME, "--display-name", "GLB calibration"]
-    for _k, _v in _kenv.items():
-        _install += ["--env", _k, _v]
-    subprocess.run(_install, env=env)
+    try:
+        from jupyter_client.kernelspec import KernelSpecManager
+        _kjson = os.path.join(KernelSpecManager().get_kernel_spec(KERNEL_NAME).resource_dir,
+                              "kernel.json")
+        with open(_kjson) as _f:
+            _spec = json.load(_f)
+        _spec["env"] = _kenv
+        with open(_kjson, "w") as _f:
+            json.dump(_spec, _f, indent=1)
+        print(f"[forward_run] patched kernel env -> {_kjson}", flush=True)
+    except Exception as _e:
+        print(f"[forward_run] WARNING: could not patch kernel.json ({_e})", flush=True)
 
     # console diagnostic: confirm the env the kernel will use actually has the DLLs
     import glob as _glob
-    _lb = os.path.join(_envroot, "Library", "bin")
+    _lb = os.path.join(_lib, "bin")
     print(f"[forward_run] kernel env root: {_envroot}", flush=True)
     print(f"[forward_run]   Library\\bin exists: {os.path.isdir(_lb)} | "
           f"proj dll: {[os.path.basename(p) for p in _glob.glob(os.path.join(_lb, 'proj*.dll'))][:3]}",
