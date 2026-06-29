@@ -36,7 +36,9 @@ import json
 import subprocess
 
 # --- mode switch -------------------------------------------------------------
-SS_ONLY = True          # True = warm-up equilibrium only (fast);  False = full transient
+SS_ONLY = False         # True = warm-up equilibrium only (fast);  False = full transient
+#   NOTE: currently False for the transient VALIDATION run. Set back to True for
+#   the SS calibration (each forward run = the fast warm-up only).
 # -----------------------------------------------------------------------------
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -60,6 +62,28 @@ KERNEL_NAME = "glb_calib"
 # we keep every cell BEFORE this one (build inputs + warm-up + clean heads).
 TRANSIENT_MARKER = "sim_name=nameSim"
 
+# Setup cell prepended to the executed notebook.  It (1) makes the model package
+# importable (sys.path + cwd) and (2) registers the conda env's DLL folders so
+# PROJ/GDAL load even when the kernel subprocess did NOT inherit a full conda
+# activation.  That clean-kernel-env case is what produces "DLL load failed while
+# importing _context" / "PROJ_LIB = None" in the notebook -- this fixes it at the
+# source by calling os.add_dll_directory() inside the kernel before any geo import.
+_SETUP_SRC = (
+    "import os, sys\n"
+    "_env = os.path.dirname(sys.executable)\n"
+    "for _sub in ('Library/bin', 'Library/mingw-w64/bin', 'Library/usr/bin', 'DLLs'):\n"
+    "    _d = os.path.join(_env, _sub)\n"
+    "    if os.path.isdir(_d):\n"
+    "        try:\n"
+    "            os.add_dll_directory(_d)\n"
+    "        except Exception:\n"
+    "            pass\n"
+    "os.environ.setdefault('PROJ_LIB', os.path.join(_env, 'Library', 'share', 'proj'))\n"
+    "os.environ.setdefault('GDAL_DATA', os.path.join(_env, 'Library', 'share', 'gdal'))\n"
+    f"sys.path.insert(0, r'{FLOPYSIM_DIR}')\n"
+    f"os.chdir(r'{FLOPYSIM_DIR}')\n"
+)
+
 
 def _write_ss_only_notebook():
     """Write a trimmed notebook = all cells before the transient build cell."""
@@ -75,16 +99,9 @@ def _write_ss_only_notebook():
             f"Could not find transient build cell (marker '{TRANSIENT_MARKER}'). "
             f"Set SS_ONLY=False or update the marker.")
     nb.cells = nb.cells[:cut]
-    # The trimmed notebook lives in the calibration subfolder, so the kernel's
-    # working dir would be here -- but the notebook's bare imports
-    # (`from Imports import *`) need flopysim/ on sys.path and as cwd.
-    # Prepend a setup cell that fixes both, regardless of where the file sits.
-    setup_src = (
-        "import os, sys\n"
-        f"sys.path.insert(0, r'{FLOPYSIM_DIR}')\n"
-        f"os.chdir(r'{FLOPYSIM_DIR}')\n"
-    )
-    nb.cells.insert(0, nbformat.v4.new_code_cell(setup_src))
+    # Prepend the setup cell (sys.path + cwd + DLL directories) so the imports
+    # resolve and PROJ/GDAL load regardless of how the kernel was launched.
+    nb.cells.insert(0, nbformat.v4.new_code_cell(_SETUP_SRC))
 
     # SAFETY (fails in milliseconds, not after a 3-hour transient + full disk):
     # the kept cells MUST contain the warm-up run and MUST NOT contain the
@@ -105,6 +122,18 @@ def _write_ss_only_notebook():
     print(f"[forward_run] SS-only: keeping {cut} cells (skip transient from cell {cut}); "
           f"warm-up present, transient excluded.", flush=True)
     return TRIMMED_NB
+
+
+def _write_full_notebook():
+    """Full notebook (warm-up + transient) with the env-setup cell prepended, so
+    the kernel finds the env DLLs even without a full conda activation."""
+    import nbformat
+    nb = nbformat.read(NOTEBOOK, as_version=4)
+    nb.cells.insert(0, nbformat.v4.new_code_cell(_SETUP_SRC))
+    out = os.path.join(HERE, "_transient_run.ipynb")
+    nbformat.write(nb, out)
+    print("[forward_run] full transient: prepended env-setup cell.", flush=True)
+    return out
 
 
 def _clear_ss_outputs():
@@ -130,7 +159,7 @@ def run_model():
         _clear_ss_outputs()
         target_nb = _write_ss_only_notebook()
     else:
-        target_nb = NOTEBOOK
+        target_nb = _write_full_notebook()
 
     # Register (idempotent) a kernel that runs THIS interpreter, so nbconvert
     # executes the notebook in the same env as forward_run (has pyogrio, flopy…).
