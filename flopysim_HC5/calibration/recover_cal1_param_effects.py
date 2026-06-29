@@ -28,6 +28,7 @@ Needs pyemu (already in the Samin_GWM2 env).  Run from the calibration folder:
     python recover_cal1_param_effects.py
 """
 import os
+import sys
 import glob
 import re
 import numpy as np
@@ -38,6 +39,16 @@ import matplotlib.pyplot as plt
 import pyemu
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# figures -> MODEL_BASE_DIR/Figures/<nameModel>  (or a directory passed as arg 1)
+try:
+    sys.path.insert(0, os.path.dirname(HERE))
+    from config import MODEL_BASE_DIR, nameModel
+    OUT_DIR = os.path.join(MODEL_BASE_DIR, "Figures", nameModel)
+except Exception:
+    OUT_DIR = HERE
+if len(sys.argv) > 1:
+    OUT_DIR = sys.argv[1]
+os.makedirs(OUT_DIR, exist_ok=True)
 
 
 def _exists(name):
@@ -184,7 +195,7 @@ else:
 fig.suptitle("Calibration_1 -- how each parameter affects the simulation "
              "(recovered from surviving per-iteration files)", fontsize=13)
 fig.tight_layout(rect=[0, 0, 1, 0.95])
-out = os.path.join(HERE, "cal1_param_effects.png")
+out = os.path.join(OUT_DIR, "cal1_param_effects.png")
 fig.savefig(out, bbox_inches="tight")
 plt.close(fig)
 print(f"\nwrote {out}")

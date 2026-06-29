@@ -29,11 +29,12 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))            # flopysim_HC5/
-from config import MODEL_BASE_DIR, FRAC_BEDROCK_THK_M, MAX_DEPTH_M, MIN_QUAT_SUBLAYER_M
+from config import (MODEL_BASE_DIR, nameModel, FRAC_BEDROCK_THK_M, MAX_DEPTH_M,
+                    MIN_QUAT_SUBLAYER_M)
 from Inputs import top_aligned, botm_aligned, mid_quat_aligned, idomain_tif
 from Helper import read_band1, read_all_bands, clean_continuous
 
-OUT_DIR = sys.argv[1] if len(sys.argv) > 1 else os.path.join(MODEL_BASE_DIR, "Figures", "Calibration_1")
+OUT_DIR = sys.argv[1] if len(sys.argv) > 1 else os.path.join(MODEL_BASE_DIR, "Figures", nameModel)
 os.makedirs(OUT_DIR, exist_ok=True)
 
 

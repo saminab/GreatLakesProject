@@ -15,6 +15,7 @@ Prints per-layer n / bias / RMSE / MAE and the start->final parameter table.
 Run from the calibration folder:   python plot_calib.py
 """
 import os
+import sys
 import glob
 import numpy as np
 import pandas as pd
@@ -23,6 +24,16 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# figures -> MODEL_BASE_DIR/Figures/<nameModel>  (or a directory passed as arg 1)
+try:
+    sys.path.insert(0, os.path.dirname(HERE))
+    from config import MODEL_BASE_DIR, nameModel
+    OUT_DIR = os.path.join(MODEL_BASE_DIR, "Figures", nameModel)
+except Exception:
+    OUT_DIR = HERE
+if len(sys.argv) > 1:
+    OUT_DIR = sys.argv[1]
+os.makedirs(OUT_DIR, exist_ok=True)
 obs = pd.read_csv(os.path.join(HERE, "obs_wells.csv"))
 obs["obsname"] = obs["obsname"].astype(str)
 
@@ -100,7 +111,7 @@ for ax in axes[len(layers):]:
 fig.suptitle(f"Observed vs simulated head -- {source}\n"
              f"ALL: n={n_all:,}  bias={bias_all:+.2f} m  RMSE={rmse_all:.2f} m")
 fig.tight_layout()
-fig.savefig(os.path.join(HERE, "calibfit_scatter.png"), bbox_inches="tight")
+fig.savefig(os.path.join(OUT_DIR, "calibfit_scatter.png"), bbox_inches="tight")
 plt.close(fig)
 print("wrote calibfit_scatter.png")
 
@@ -119,7 +130,7 @@ plt.colorbar(sc, ax=ax2, label="Residual (m)   red = sim too high")
 ax2.set(title="Residual map (model grid)", xlabel="Column", ylabel="Row (flipped)")
 ax2.set_aspect("equal")
 fig.tight_layout()
-fig.savefig(os.path.join(HERE, "calibfit_residuals.png"), bbox_inches="tight")
+fig.savefig(os.path.join(OUT_DIR, "calibfit_residuals.png"), bbox_inches="tight")
 plt.close(fig)
 print("wrote calibfit_residuals.png")
 
@@ -140,7 +151,7 @@ try:
 
     # parameter start -> final (normalized to start = 1.0)
     import pyemu
-    pst = pyemu.Pst(os.path.join(HERE, "calib.pst"))
+    pst = pyemu.Pst(os.path.join(OUT_DIR, "calib.pst"))
     init = pst.parameter_data.set_index("parnme")["parval1"].astype(float)
     parf = _find("calib.par", "calib.*.par")
     fin = pyemu.pst_utils.read_parfile(parf)["parval1"].astype(float)
@@ -154,7 +165,7 @@ try:
         axb.text(i, ratio[i], f"{init[n]:.3g}→{fin[n]:.3g}", ha="center",
                  va="bottom", fontsize=8)
     fig.tight_layout()
-    fig.savefig(os.path.join(HERE, "calib_convergence.png"), bbox_inches="tight")
+    fig.savefig(os.path.join(OUT_DIR, "calib_convergence.png"), bbox_inches="tight")
     plt.close(fig)
     print("wrote calib_convergence.png")
     print("\nstart -> final parameters:")

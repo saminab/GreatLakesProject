@@ -19,6 +19,7 @@ Run from the calibration folder:   python plot_calib_report.py
 1 km cells are assumed for the map axes (delr = delc = 1000 m in this model).
 """
 import os
+import sys
 import glob
 import numpy as np
 import pandas as pd
@@ -28,6 +29,16 @@ import matplotlib.pyplot as plt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CELL_KM = 1.0   # delr = delc = 1000 m
+# figures -> MODEL_BASE_DIR/Figures/<nameModel>  (or a directory passed as arg 1)
+try:
+    sys.path.insert(0, os.path.dirname(HERE))
+    from config import MODEL_BASE_DIR, nameModel
+    OUT_DIR = os.path.join(MODEL_BASE_DIR, "Figures", nameModel)
+except Exception:
+    OUT_DIR = HERE
+if len(sys.argv) > 1:
+    OUT_DIR = sys.argv[1]
+os.makedirs(OUT_DIR, exist_ok=True)
 
 
 def _find(*names):
@@ -127,7 +138,7 @@ for ax in axes[len(panels):]:
     ax.axis("off")
 fig.suptitle(f"Observed vs simulated head (density) -- {source}", fontsize=13)
 fig.tight_layout()
-fig.savefig(os.path.join(HERE, "report_1to1_density.png"), bbox_inches="tight")
+fig.savefig(os.path.join(OUT_DIR, "report_1to1_density.png"), bbox_inches="tight")
 plt.close(fig)
 print("\nwrote report_1to1_density.png")
 
@@ -153,7 +164,7 @@ for ax in axes[len(map_panels):]:
     ax.axis("off")
 cbar = fig.colorbar(sc, ax=axes.tolist(), shrink=0.6, label="Residual sim - obs (m)   red = too high")
 fig.suptitle(f"Residual maps by layer -- {source}", fontsize=13)
-fig.savefig(os.path.join(HERE, "report_residual_maps.png"), bbox_inches="tight")
+fig.savefig(os.path.join(OUT_DIR, "report_residual_maps.png"), bbox_inches="tight")
 plt.close(fig)
 print("wrote report_residual_maps.png")
 
@@ -213,7 +224,7 @@ ax[1, 1].grid(alpha=0.3)
 
 fig.suptitle(f"Calibration diagnostics -- {source}", fontsize=13)
 fig.tight_layout()
-fig.savefig(os.path.join(HERE, "report_diagnostics.png"), bbox_inches="tight")
+fig.savefig(os.path.join(OUT_DIR, "report_diagnostics.png"), bbox_inches="tight")
 plt.close(fig)
 print("wrote report_diagnostics.png")
 print("\nDone. Three report_*.png files written to the calibration folder.")
