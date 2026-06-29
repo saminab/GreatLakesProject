@@ -193,6 +193,11 @@ def run_model():
         "GDAL_DATA": os.path.join(_lib, "share", "gdal"),
         "PATH": os.pathsep.join(_kdirs) + os.pathsep + os.environ.get("PATH", ""),
     }
+    # THE fix: put these in the environment we hand to nbconvert, so the kernel it
+    # spawns inherits Library\bin on PATH at startup (a plain shell python with
+    # CONDA_PREFIX + Library\bin on PATH imports pyproj fine; the kernel didn't have
+    # Library\bin, so PROJ couldn't load).  The kernel.json patch below is a backup.
+    env.update(_kenv)
     try:
         from jupyter_client.kernelspec import KernelSpecManager
         _kjson = os.path.join(KernelSpecManager().get_kernel_spec(KERNEL_NAME).resource_dir,
