@@ -13,8 +13,8 @@ from pathlib import Path
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Calibration_1"       # used for MF6 package names and the sim folder
-nameModel_SS = "Calibration_1_SS"   # fresh SS warm-up (RCH_MULT + DRN_DEPTH_M both changed)
+nameModel    = "Calibration_2_val"   # full transient validation of the Cal_2 calibrated params
+nameModel_SS = "Calibration_2_val_SS"  # its warm-up
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
@@ -247,12 +247,12 @@ KV_ANISOTROPY_RATIO = 10.0                 # Kv = Kh / KV_ANISOTROPY_RATIO (all 
 #                   parameter (PEST name kh_mult).
 #   HK_MULT_L1..5 : optional PER-LAYER multipliers (default 1.0), kept for a later
 #                   distributed calibration. Effective per-layer = HK_MULT * HK_MULT_Lk.
-HK_MULT    = 1.0                            # single global Kh multiplier (Calibration_2)
-HK_MULT_L1 = 1.0                            # surficial Quaternary
-HK_MULT_L2 = 1.0                            # middle Quaternary
-HK_MULT_L3 = 1.0                            # lower Quaternary
-HK_MULT_L4 = 1.0                            # fractured bedrock
-HK_MULT_L5 = 1.0                            # deep bedrock
+HK_MULT    = 1.0                            # global Kh multiplier (1.0 = use per-layer below)
+HK_MULT_L1 = 1.0095                         # surficial Quaternary  (Cal_2 calibrated value)
+HK_MULT_L2 = 0.9948                         # middle Quaternary     (Cal_2 calibrated value)
+HK_MULT_L3 = 1.0320                         # lower Quaternary      (Cal_2 calibrated value)
+HK_MULT_L4 = 1.2100                         # fractured bedrock     (Cal_2 calibrated value)
+HK_MULT_L5 = 1.0018                         # deep bedrock          (Cal_2 calibrated value)
 
 
 # ---------------------------------------------------------------------------
