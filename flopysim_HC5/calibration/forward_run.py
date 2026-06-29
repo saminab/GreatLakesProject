@@ -161,12 +161,35 @@ def run_model():
     else:
         target_nb = _write_full_notebook()
 
-    # Register (idempotent) a kernel that runs THIS interpreter, so nbconvert
-    # executes the notebook in the same env as forward_run (has pyogrio, flopy…).
-    subprocess.run(
-        [sys.executable, "-m", "ipykernel", "install", "--user",
-         "--name", KERNEL_NAME, "--display-name", "GLB calibration"],
-        env=env)
+    # Register the kernel with the conda env's ACTIVATION variables baked into the
+    # kernelspec, so the kernel starts already "activated": CONDA_PREFIX set (this
+    # triggers the env python's own DLL-dir init at startup) plus Library\bin on
+    # PATH and PROJ_LIB/GDAL_DATA.  Baking it into the kernelspec is what finally
+    # makes PROJ load -- an in-cell os.add_dll_directory runs too late for some
+    # dependency chains, and the kernel does not inherit the shell's activation.
+    _envroot = os.path.dirname(sys.executable)
+    _kdirs = [os.path.join(_envroot, p) for p in
+              ("", "Library\\bin", "Library\\mingw-w64\\bin", "Library\\usr\\bin",
+               "Scripts", "DLLs")]
+    _kenv = {
+        "CONDA_PREFIX": _envroot,
+        "PROJ_LIB":  os.path.join(_envroot, "Library", "share", "proj"),
+        "GDAL_DATA": os.path.join(_envroot, "Library", "share", "gdal"),
+        "PATH": os.pathsep.join(_kdirs) + os.pathsep + os.environ.get("PATH", ""),
+    }
+    _install = [sys.executable, "-m", "ipykernel", "install", "--user",
+                "--name", KERNEL_NAME, "--display-name", "GLB calibration"]
+    for _k, _v in _kenv.items():
+        _install += ["--env", _k, _v]
+    subprocess.run(_install, env=env)
+
+    # console diagnostic: confirm the env the kernel will use actually has the DLLs
+    import glob as _glob
+    _lb = os.path.join(_envroot, "Library", "bin")
+    print(f"[forward_run] kernel env root: {_envroot}", flush=True)
+    print(f"[forward_run]   Library\\bin exists: {os.path.isdir(_lb)} | "
+          f"proj dll: {[os.path.basename(p) for p in _glob.glob(os.path.join(_lb, 'proj*.dll'))][:3]}",
+          flush=True)
 
     cmd = [
         sys.executable, "-m", "jupyter", "nbconvert",
