@@ -158,6 +158,22 @@ def _clear_ss_outputs():
         print(f"[forward_run] removed stale warm-up heads: {ss_hds}", flush=True)
 
 
+def _write_run_script(nb_path):
+    """Concatenate the notebook's code cells into a plain .py.  The notebook uses
+    no IPython magics, so this is a valid script -- and running it as a normal
+    subprocess (instead of an nbconvert kernel) means it INHERITS the environment,
+    so PROJ/GDAL DLLs load.  The nbconvert kernel never inherited the env (PROJ_LIB
+    came up None no matter what), which is why every kernel-based attempt failed."""
+    import nbformat
+    nb = nbformat.read(nb_path, as_version=4)
+    code = ["".join(c.source) for c in nb.cells if c.cell_type == "code"]
+    script = os.path.join(HERE, "_run_script.py")
+    with open(script, "w", encoding="utf-8") as f:
+        f.write(f"# auto-generated from {os.path.basename(nb_path)} by forward_run.py\n\n")
+        f.write("\n\n# ---- next cell ----\n".join(code))
+    return script
+
+
 def run_model():
     env = os.environ.copy()
     env["GLB_PEST_PARAMS"] = PARAM_FILE          # <-- config.py picks this up
@@ -168,71 +184,31 @@ def run_model():
     else:
         target_nb = _write_full_notebook()
 
-    # Register the kernel, then write the conda env's ACTIVATION variables straight
-    # into its kernel.json "env" block.  ipykernel's --env flag is not reliably
-    # honored (the kernel still came up un-activated, PROJ_LIB=None), but jupyter
-    # ALWAYS merges kernel.json "env" into the kernel's environment -- so this is
-    # what finally makes PROJ load: CONDA_PREFIX (triggers the env python's own
-    # DLL-dir init) + Library\bin on PATH + PROJ/GDAL data dirs.
-    subprocess.run(
-        [sys.executable, "-m", "ipykernel", "install", "--user",
-         "--name", KERNEL_NAME, "--display-name", "GLB calibration"],
-        env=env)
-
+    # Put the conda env's Library\bin (and friends) on PATH for the subprocess.
+    # A plain python subprocess inherits this, so the env's compiled DLLs (PROJ,
+    # GDAL) load -- a shell python with Library\bin on PATH imports pyproj fine.
     _envroot = os.path.dirname(sys.executable)
     _lib = os.path.join(_envroot, "Library")
     _kdirs = [_envroot, os.path.join(_lib, "bin"),
               os.path.join(_lib, "mingw-w64", "bin"),
               os.path.join(_lib, "usr", "bin"),
-              os.path.join(_envroot, "Scripts"),
-              os.path.join(_envroot, "DLLs")]
-    _kenv = {
-        "CONDA_PREFIX": _envroot,
-        "PROJ_LIB":  os.path.join(_lib, "share", "proj"),
-        "PROJ_DATA": os.path.join(_lib, "share", "proj"),
-        "GDAL_DATA": os.path.join(_lib, "share", "gdal"),
-        "PATH": os.pathsep.join(_kdirs) + os.pathsep + os.environ.get("PATH", ""),
-    }
-    # THE fix: put these in the environment we hand to nbconvert, so the kernel it
-    # spawns inherits Library\bin on PATH at startup (a plain shell python with
-    # CONDA_PREFIX + Library\bin on PATH imports pyproj fine; the kernel didn't have
-    # Library\bin, so PROJ couldn't load).  The kernel.json patch below is a backup.
-    env.update(_kenv)
-    try:
-        from jupyter_client.kernelspec import KernelSpecManager
-        _kjson = os.path.join(KernelSpecManager().get_kernel_spec(KERNEL_NAME).resource_dir,
-                              "kernel.json")
-        with open(_kjson) as _f:
-            _spec = json.load(_f)
-        _spec["env"] = _kenv
-        with open(_kjson, "w") as _f:
-            json.dump(_spec, _f, indent=1)
-        print(f"[forward_run] patched kernel env -> {_kjson}", flush=True)
-    except Exception as _e:
-        print(f"[forward_run] WARNING: could not patch kernel.json ({_e})", flush=True)
+              os.path.join(_envroot, "Scripts"), os.path.join(_envroot, "DLLs")]
+    env["PATH"] = os.pathsep.join(_kdirs) + os.pathsep + env.get("PATH", "")
+    env["CONDA_PREFIX"] = _envroot
+    env.setdefault("PROJ_LIB",  os.path.join(_lib, "share", "proj"))
+    env.setdefault("PROJ_DATA", os.path.join(_lib, "share", "proj"))
+    env.setdefault("GDAL_DATA", os.path.join(_lib, "share", "gdal"))
 
-    # console diagnostic: confirm the env the kernel will use actually has the DLLs
-    import glob as _glob
-    _lb = os.path.join(_lib, "bin")
-    print(f"[forward_run] kernel env root: {_envroot}", flush=True)
-    print(f"[forward_run]   Library\\bin exists: {os.path.isdir(_lb)} | "
-          f"proj dll: {[os.path.basename(p) for p in _glob.glob(os.path.join(_lb, 'proj*.dll'))][:3]}",
-          flush=True)
-
-    cmd = [
-        sys.executable, "-m", "jupyter", "nbconvert",
-        "--to", "notebook", "--execute",
-        f"--ExecutePreprocessor.timeout={RUN_TIMEOUT_S}",
-        f"--ExecutePreprocessor.kernel_name={KERNEL_NAME}",
-        "--output", EXECUTED_NB,
-        target_nb,
-    ]
+    # Run the model as a PLAIN SCRIPT -- no Jupyter kernel (the kernel never
+    # inherited the environment, so PROJ could not load in it).
+    script = _write_run_script(target_nb)
     mode = "warm-up equilibrium (SS-only)" if SS_ONLY else "full transient"
-    print(f"[forward_run] launching MODFLOW [{mode}] ...", flush=True)
+    print(f"[forward_run] launching MODFLOW [{mode}] as a plain script (no kernel) ...",
+          flush=True)
     t0 = time.time()
-    res = subprocess.run(cmd, cwd=FLOPYSIM_DIR, env=env)   # cwd so `from config import *` resolves
+    res = subprocess.run([sys.executable, script], cwd=FLOPYSIM_DIR, env=env)
     if res.returncode != 0:
-        raise RuntimeError(f"Simulation notebook failed (exit {res.returncode})")
+        raise RuntimeError(f"Simulation script failed (exit {res.returncode})")
     print(f"[forward_run] solve finished in {(time.time()-t0)/60:.1f} min", flush=True)
 
 
