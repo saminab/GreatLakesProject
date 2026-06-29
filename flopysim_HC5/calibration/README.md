@@ -3,6 +3,58 @@
 Automated inverse calibration against static water-level observations from the
 well database. Built with **pyEMU + PEST++**.
 
+---
+
+## Cheat sheet (read this first)
+
+**Calibration is just a 4-step loop, repeated until the fit stops improving:**
+
+1. **PEST++ picks parameter values** → writes them into `pest_params.dat`
+2. **Run the model** with those values → simulated head at each well → `sim_heads.dat`
+3. **Compare** simulated vs. observed → one mismatch number, **phi** (lower = better)
+4. **Adjust the parameters** to lower phi → back to step 1
+
+**You only ever edit two files. Everything else is set-up-once plumbing.**
+
+| file | what it does | you touch it? |
+|------|--------------|---------------|
+| `config.py` | model settings + the parameter **values** (the knobs) | **yes** — set values |
+| `build_pest.py` | *which* parameters to calibrate, bounds, and `noptmax` | **yes** — pick params / noptmax |
+| `make_obs.py` | builds the well target list (`obs_wells.csv`) | once, then never |
+| `pestpp-glm.exe` | the optimizer | no — just run it |
+| `forward_run.py` | bridge: runs MODFLOW, reads heads at the wells | no — plumbing |
+| `*.tpl` / `*.ins` / `pest_params.dat` | how PEST and the model pass numbers | no — plumbing |
+
+**To run a calibration (from the `calibration/` folder, env activated):**
+
+```bat
+:: 1. (first time only) build the well targets
+python make_obs.py
+
+:: 2. assemble the control file  -- edit build_pest.py first: PARAMS + noptmax
+python build_pest.py
+
+:: 3. launch  (each forward run is the ~2 h SS warm-up; plan for many runs)
+pestpp-glm.exe calib.pst        ::  in PowerShell:  .\pestpp-glm.exe calib.pst
+```
+
+**To change which parameters are calibrated:** edit the `PARAMS` list in
+`build_pest.py`, then re-run `python build_pest.py`. **To set starting/frozen
+values:** edit `config.py`. **noptmax = 0** runs once (a validation); **= 10**
+runs the real calibration.
+
+**Outputs:** `calib.par` (best values) · `calib.rei` (residuals) ·
+`calib.iobj` (phi per iteration). Plot with the `plot_*.py` scripts (they save to
+`Figures/<nameModel>`).
+
+> Gotcha that bit us repeatedly: the model is a Jupyter notebook, so it runs in a
+> conda *kernel*. If imports fail (`pyogrio`, PROJ DLL), the env isn't fully
+> activated for the kernel — run via `conda run -n Samin_GWM2 --no-capture-output
+> python forward_run.py`, or from a properly-activated Anaconda Prompt. This is an
+> environment issue, **not** a calibration-code issue.
+
+---
+
 ## What gets calibrated
 
 **Calibration_2 (current)** — a single **global horizontal-K multiplier**. It
