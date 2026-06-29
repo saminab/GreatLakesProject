@@ -34,13 +34,13 @@ import flopy.utils.binaryfile as bf
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))            # flopysim_HC5/ for config
-from config import MODEL_BASE_DIR, nameModel_SS, RCH_MULT
+from config import MODEL_BASE_DIR, nameModel, nameModel_SS, RCH_MULT
 
 # ---------------------------------------------------------------------------
 # args
 # ---------------------------------------------------------------------------
 args = sys.argv[1:]
-OUT_DIR = args[0] if len(args) >= 1 else os.path.join(MODEL_BASE_DIR, "Figures", "Calibration_1")
+OUT_DIR = args[0] if len(args) >= 1 else os.path.join(MODEL_BASE_DIR, "Figures", nameModel)
 SIM_WS = args[1] if len(args) >= 2 else os.path.join(MODEL_BASE_DIR, nameModel_SS)
 os.makedirs(OUT_DIR, exist_ok=True)
 print(f"model workspace : {SIM_WS}")

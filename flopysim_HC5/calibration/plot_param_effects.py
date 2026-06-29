@@ -41,7 +41,18 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-BASE = sys.argv[1] if len(sys.argv) > 1 else "calib"
+# first non-directory arg = pestpp basename (default "calib"); a directory arg
+# (or the default Figures/<nameModel>) is the output location.
+_args = sys.argv[1:]
+BASE = next((a for a in _args if not os.path.isdir(a)), "calib")
+try:
+    sys.path.insert(0, os.path.dirname(HERE))
+    from config import MODEL_BASE_DIR, nameModel
+    _default_out = os.path.join(MODEL_BASE_DIR, "Figures", nameModel)
+except Exception:
+    _default_out = HERE
+OUT_DIR = next((a for a in _args if os.path.isdir(a)), _default_out)
+os.makedirs(OUT_DIR, exist_ok=True)
 
 
 def _path(ext):
@@ -177,7 +188,7 @@ if iobj_p:
 
 fig.suptitle(f"How each parameter affects the simulation  --  '{BASE}' run", fontsize=14)
 fig.tight_layout(rect=[0, 0, 1, 0.96])
-out = os.path.join(HERE, "param_effects.png")
+out = os.path.join(OUT_DIR, "param_effects.png")
 fig.savefig(out, bbox_inches="tight")
 plt.close(fig)
 print(f"\nwrote {out}")

@@ -30,13 +30,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def out_dir():
+    # first arg that is NOT a .rei file is treated as the output directory
     for a in sys.argv[1:]:
-        if os.path.isdir(a):
+        if not (a.lower().endswith(".rei") or re.search(r"\.rei\d+$", a.lower())):
             return a
     try:
         sys.path.insert(0, os.path.dirname(HERE))
-        from config import MODEL_BASE_DIR
-        return os.path.join(MODEL_BASE_DIR, "Figures", "Calibration_1")
+        from config import MODEL_BASE_DIR, nameModel
+        return os.path.join(MODEL_BASE_DIR, "Figures", nameModel)
     except Exception:
         return os.path.join(HERE, "figures")
 
@@ -46,7 +47,8 @@ def find_rei_files():
            or a.lower().endswith(".rei")]
     if cli:
         return cli
-    for folder in (os.path.join(HERE, "cal1_archive"), HERE):
+    # current run (HERE) first, then the Cal_1 backup
+    for folder in (HERE, os.path.join(HERE, "cal1_archive")):
         hits = sorted(glob.glob(os.path.join(folder, "calib.rei[0-9]")),
                       key=lambda p: int(re.search(r"rei(\d+)$", p).group(1)))
         if hits:

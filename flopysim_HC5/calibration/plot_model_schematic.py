@@ -31,8 +31,8 @@ if len(sys.argv) > 1:
 else:
     try:
         sys.path.insert(0, os.path.dirname(HERE))      # flopysim_HC5/ holds config.py
-        from config import MODEL_BASE_DIR
-        OUT_DIR = os.path.join(MODEL_BASE_DIR, "Figures", "Calibration_1")
+        from config import MODEL_BASE_DIR, nameModel
+        OUT_DIR = os.path.join(MODEL_BASE_DIR, "Figures", nameModel)
     except Exception as e:
         print(f"[schematic] could not import config ({e}); using ./figures")
         OUT_DIR = os.path.join(HERE, "figures")
