@@ -13,8 +13,8 @@ from pathlib import Path
 # MODEL IDENTITY
 # ---------------------------------------------------------------------------
 nameSim   = "Greatlakes"
-nameModel    = "Calibration_2_val"   # full transient validation of the Cal_2 calibrated params
-nameModel_SS = "Calibration_2_val_SS"  # its warm-up
+nameModel    = "Cal2_val"            # full transient validation of the Cal_2 calibrated params
+nameModel_SS = "Cal2_val_SS"         # its warm-up  (MODFLOW caps model names at 16 chars)
 
 # ---------------------------------------------------------------------------
 # MODEL GRID
